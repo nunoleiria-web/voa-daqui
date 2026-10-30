@@ -135,7 +135,7 @@ const CITY_CODE = {STN:'LON', LTN:'LON', LGW:'LON', LHR:'LON', SEN:'LON', BVA:'P
 function toIt(x){
   const cars = x.carrier.split(' + '), seg = (from, to, car, fromCity, toCity, fromC, toC) => ({from, to, carrier: car, carrierName: car, fromCity, toCity, fromCountry: fromC, toCountry: toC});
   const oc = {LIS:'Lisbon', OPO:'Porto', FAO:'Faro'}[x.o];
-  return {price: x.price, bookingUrl: x.url, baggage: {personalItem: 1, cabinBag: 0, checkedBag: 0}, key: x.key,
+  return {price: x.price, bookingUrl: x.url, baggage: {personalItem: 1, cabinBag: 0, checkedBag: 0}, key: x.key, cmp: x.cmp || {},
     outbound: {from: x.o, to: x.to, departureTime: x.out.dep + ':00', arrivalTime: x.out.arr + ':00', durationSeconds: (x.out.min || 0) * 60, stops: x.out.stops, route: [x.o, x.to], segments: [seg(x.o, x.to, cars[0], oc, x.city, 'Portugal', x.country)]},
     inbound: {from: x.to, to: x.o, departureTime: x.in.dep + ':00', arrivalTime: x.in.arr + ':00', durationSeconds: (x.in.min || 0) * 60, stops: x.in.stops, route: [x.to, x.o], segments: [seg(x.to, x.o, cars[1] || cars[0], x.city, oc, x.country, 'Portugal')]}};
 }
@@ -228,12 +228,16 @@ function renderResults(){
     ${P.total > 1 ? `<p class="note">Total estimado para ${paxLabel(P)}. Os lugares mais baratos costumam ser poucos: confirma no Kiwi se há para todos.</p>` : ''}
     <div class="grid">${idx.map((i, k) => card(i, k === 0 ? {feat: true, badge: sortBy === 'price' ? 'O mais barato' : sortBy === 'dur' ? 'O mais rápido' : 'O mais cedo'} : {})).join('')}</div>`;
 }
+function cheaperElsewhere(it){
+  const c = it.cmp || {}, best = [['lastminute', c.lm], ['eDreams', c.ed]].filter(([, v]) => v && v.p < it.price - 0.5).sort((a, b) => a[1].p - b[1].p)[0];
+  return best ? `<span class="fact ok">${esc(best[0])}: ${eur0(best[1].p)}</span>` : '';
+}
 function card(i, x = {}){
   const it = current[i], P = ctx.P, n = nightsOf(it);
   const total = groupPrice(it, P);
   const perTxt = P.payers > 1 ? `${eur0(it.price)} por pessoa` : 'ida e volta';
   const facts = [`<span class="fact">${esc(fmtShort(it.outbound.departureTime))} → ${esc(fmtShort(it.inbound.departureTime))}</span>`,
-    isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', '<span class="fact dim">Só mochila</span>'].join('');
+    isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', '<span class="fact dim">Só mochila</span>', cheaperElsewhere(it)].join('');
   const saved = listUrls().has(it.bookingUrl);
   return `<article class="dcard ${x.feat ? 'feat' : ''}">
     <div class="art" data-open="${i}" role="button" tabindex="0" aria-label="Ver viagem para ${esc(cityOf(it))}, ${eur0(total)}">${art(it.outbound.to, countryEn(it), x.feat ? 260 : 200)}<div class="shade"></div>
@@ -280,9 +284,12 @@ function setTab(t){ sheetTab = t; $('dBox').querySelectorAll('[data-tab]').forEa
 const linkRow = (name, sub, url, label, tag) => `<div class="hrow"><div><b>${esc(name)}${tag ? `<i class="src ${tag[0]}">${esc(tag[1])}</i>` : ''}</b><span>${esc(sub)}</span></div><div class="hp"><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a></div></div>`;
 function links(it, P){
   const o = it.outbound.from, d = it.outbound.to, a = isoDay(it.outbound.departureTime), b = isoDay(it.inbound.departureTime);
+  const b2 = s => s.slice(8, 10), my = s => s.slice(5, 7) + s.slice(0, 4);
   const yymmdd = s => s.slice(2).replace(/-/g, ''), city = cityOf(it), cityEn = lastSeg(it).toCity.replace(/,.*$/, '');
   const kids = P.ages.length ? '&' + P.ages.map(x => `age=${x}`).join('&') : '';
   return {
+    lm: `https://www.lastminute.ie/msr/route/searching.do?departureAirport=${o}&arrivalAirport=${d}&outboundDay=${b2(a)}&outboundMonthYear=${my(a)}&returnDay=${b2(b)}&returnMonthYear=${my(b)}&adults=${P.adults}&childs=${P.children}&infants=${P.infants}&currency=EUR&url=search3.do&roundtrip=true`,
+    ed: `https://www.edreams.pt/travel/?deeplink=/results/ret=${b};infants=${P.infants};children=${P.children};adults=${P.adults};type=R;class=TOURIST;from.iata=${o};to.iata=${d};dep=${a};collectionmethod=16`,
     sky: `https://www.skyscanner.pt/transporte/voos/${o.toLowerCase()}/${(CITY_CODE[d] || d).toLowerCase()}/${yymmdd(a)}/${yymmdd(b)}/?adultsv2=${P.adults}${P.ages.length ? '&childrenv2=' + P.ages.join('|') : ''}`,
     gfl: `https://www.google.com/travel/flights?hl=pt-PT&curr=EUR&q=${encodeURIComponent(`Voos de ${o} para ${d} em ${a} regresso ${b}`)}`,
     booking: `https://www.booking.com/searchresults.pt-pt.html?ss=${encodeURIComponent(cityEn)}&checkin=${a}&checkout=${b}&group_adults=${P.adults}&group_children=${P.ages.length}${kids}&no_rooms=${P.rooms}&selected_currency=EUR`,
@@ -291,6 +298,20 @@ function links(it, P){
     events: `https://www.google.com/search?q=${encodeURIComponent(`eventos concertos espetáculos ${city} ${fmtDay(atNoon(a))} a ${fmtDay(atNoon(b))} ${a.slice(0, 4)}`)}`
   };
 }
+function compareHtml(it, P, L){
+  const c = it.cmp || {}, oh = fmtHM(it.outbound.departureTime), ih = fmtHM(it.inbound.departureTime);
+  const rows = [{name: 'Kiwi.com', p: it.price, url: it.bookingUrl}];
+  if (c.lm) rows.push({name: 'lastminute.com', p: c.lm.p, url: L.lm, other: c.lm.out !== oh || c.lm.in !== ih ? c.lm : null});
+  if (c.ed) rows.push({name: 'eDreams', p: c.ed.p, prime: c.ed.prime, url: L.ed, other: c.ed.out !== oh || c.ed.in !== ih ? c.ed : null});
+  const min = Math.min(...rows.map(r => r.p));
+  rows.forEach(r => r.top = rows.length > 1 && r.p === min);
+  const priced = rows.map(r => `<div class="crow ${r.top ? 'top' : ''}"><span>${esc(r.name)}${r.top ? '<em>mais barato</em>' : ''}</span><span class="cp">${eur(r.p)}${r.prime ? `<small>${eur0(r.prime)} para membros Prime pagos</small>` : ''}${r.other ? `<small>voos das ${esc(r.other.out)} e ${esc(r.other.in)}</small>` : ''}${P.payers > 1 ? `<small>por pessoa · ≈ ${eur0(r.p * P.payers)} total</small>` : ''}</span><a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir</a></div>`).join('');
+  const links = [!c.lm && ['lastminute.com', L.lm], !c.ed && ['eDreams', L.ed], ['Skyscanner', L.sky], ['Google Voos', L.gfl]].filter(Boolean)
+    .map(([n, u]) => `<div class="crow"><span>${esc(n)}</span><span class="muted">ver preço</span><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a></div>`).join('');
+  const seen = rows.length > 1 && DATA ? ` Preços vistos hoje às ${pad2(new Date(DATA.updated).getHours())}:${pad2(new Date(DATA.updated).getMinutes())}.` : '';
+  return `<span class="note">Mesmas datas, por pessoa, só com mochila.${seen} Os outros sites abrem já com os aeroportos, as datas e ${paxLabel(P)}.</span>${priced}${links}
+    <span class="note">O eDreams e o lastminute.com mostram o preço sem malas; acrescenta-as lá. Confirma horários e malas antes de pagar.</span>`;
+}
 function renderTab(){
   const body = $('dBody'); if (!SH || !body) return;
   const it = SH.it, P = SH.P, L = links(it, P), n = nightsOf(it);
@@ -298,11 +319,7 @@ function renderTab(){
     body.innerHTML = `<div class="sec"><h4>${icon('plane')}Horários</h4>${legBlock('Ida', it.outbound)}${legBlock('Volta', it.inbound)}
         <div class="facts">${isDirect(it) ? '<span class="fact ok">Direto</span>' : ''}<span class="fact dim">Só mochila pequena incluída</span></div></div>
       <div class="sec"><h4>${icon('swap')}Comparar com outros sites</h4>
-        <span class="note">Mesmo voo e datas. Os outros sites abrem já com os aeroportos, as datas e ${paxLabel(P)}.</span>
-        <div class="crow top"><span>Kiwi.com<em>preço de hoje</em></span><span class="cp">${eur(it.price)}${P.payers > 1 ? `<small>por pessoa · ≈ ${eur0(groupPrice(it, P))} total</small>` : ''}</span><a class="btn sm" href="${esc(it.bookingUrl)}" target="_blank" rel="noopener">Abrir</a></div>
-        <div class="crow"><span>Skyscanner</span><span class="muted">ver preço</span><a class="btn sm" href="${esc(L.sky)}" target="_blank" rel="noopener">Abrir</a></div>
-        <div class="crow"><span>Google Voos</span><span class="muted">ver preço</span><a class="btn sm" href="${esc(L.gfl)}" target="_blank" rel="noopener">Abrir</a></div>
-        <span class="note">Malas de cabine ou de porão acrescentam-se no site da reserva. Confirma horários e malas antes de pagar.</span></div>`;
+        ${compareHtml(it, P, L)}</div>`;
   } else if (sheetTab === 'stay'){
     body.innerHTML = `<div class="sec"><h4>${icon('bed')}Alojamento</h4>
         <span class="note">${n} noite${n > 1 ? 's' : ''} · ${fmtShort(it.outbound.departureTime)} a ${fmtShort(it.inbound.departureTime)} · ${paxLabel(P)}, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}. Os sites abrem já com estas datas.</span>

@@ -25,7 +25,15 @@ Todas as manhãs uma tarefa agendada do Claude faz isto:
 
 3. **`python3 build.py rows.txt`**: valida as linhas, atualiza `data/history.json` e gera `data/data.json` (lista de voos + Pechincha do dia). Se der erro, corrigir `rows.txt` e repetir.
 
-4. **Commit e push** para `main`. O GitHub Pages publica sozinho em 1 a 2 minutos.
+4. **Comparar preços.** O `build.py` termina com a lista "PARA COMPARAR". Para cada linha:
+   - `lastminute.com`: ferramenta `search_flights` do lastminute.com com `departure`, `arrival`, `start_date` (ida), `end_date` (volta), `max_results` 1, `adults` 1.
+   - `eDreams`: ferramenta `search_flights` do eDreams com `origin`, `destination`, `departure_date`, `return_date`, `adults` 1, `market` pt-PT. Usar o primeiro itinerário (o mais barato).
+   - Escrever `cmp.txt`, uma linha por resultado: `ORIGEM|DESTINO|data ida|data volta|lm ou ed|preço|preço Prime (eDreams) ou -|hora ida|hora volta`
+     Ex.: `OPO|SVQ|2026-11-24|2026-11-28|lm|33.98|-|07:35|19:50` e `OPO|SVQ|2026-11-24|2026-11-28|ed|45|28|07:35|19:50`
+   - Se uma pesquisa falhar, salta essa linha.
+   - Correr de novo: `python3 build.py rows.txt cmp.txt`
+
+5. **Commit e push** para `main`. O GitHub Pages publica sozinho em 1 a 2 minutos.
 
 ## Como funciona a Pechincha do dia
 

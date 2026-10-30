@@ -66,10 +66,56 @@ def parse(path):
     return items
 
 
+LM_TOP, ED_TOP = 12, 4   # quantos destinos comparar no lastminute.com e no eDreams
+
+
+def parse_cmp(path, items):
+    """cmp.txt: preços do lastminute.com (lm) e do eDreams (ed) para as mesmas datas.
+    ORIGEM|DESTINO|data ida|data volta|site|preço|preço Prime ou -|hora ida|hora volta
+    Ex.: OPO|SVQ|2026-11-24|2026-11-28|lm|33.98|-|07:35|19:50"""
+    by = {(i['o'], i['to'], i['out']['dep'][:10], i['in']['dep'][:10]): i for i in items}
+    n = 0
+    for k, line in enumerate(Path(path).read_text(encoding='utf-8').splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        f = [x.strip() for x in line.split('|')]
+        if len(f) != 9 or f[4] not in ('lm', 'ed'):
+            fail(f'cmp.txt linha {k}: formato inválido: {line}')
+        it = by.get((f[0], f[1], f[2], f[3]))
+        if not it:
+            print(f'aviso: cmp.txt linha {k} não corresponde a nenhum voo de rows.txt')
+            continue
+        try:
+            entry = {'p': round(float(f[5]), 2), 'out': f[7], 'in': f[8]}
+            if f[6] not in ('-', ''):
+                entry['prime'] = round(float(f[6]), 2)
+        except ValueError:
+            fail(f'cmp.txt linha {k}: preço inválido')
+        it.setdefault('cmp', {})[f[4]] = entry
+        n += 1
+    return n
+
+
+def to_compare(items, deal):
+    """Os voos a comparar: a pechincha e os destinos mais baratos (um por cidade)."""
+    seen, order = set(), []
+    for it in ([deal['item']] if deal else []) + sorted(items, key=lambda i: i['price']):
+        c = it['city']
+        if c in seen:
+            continue
+        seen.add(c)
+        order.append(it)
+    lm = order[:LM_TOP]
+    ed = order[:ED_TOP + (1 if deal else 0)]
+    return lm, ed
+
+
 def main():
-    if len(sys.argv) != 2:
-        fail('uso: python3 build.py rows.txt')
+    if len(sys.argv) not in (2, 3):
+        fail('uso: python3 build.py rows.txt [cmp.txt]')
     items = parse(sys.argv[1])
+    ncmp = parse_cmp(sys.argv[2], items) if len(sys.argv) == 3 and Path(sys.argv[2]).exists() else 0
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=0)))
     try:
         import zoneinfo
@@ -121,8 +167,13 @@ def main():
     DATA.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     HIST.write_text(json.dumps(hist, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     d = deal
-    print(f'{len(items)} voos · histórico de {len(prev)} dias · ' +
+    print(f'{len(items)} voos · histórico de {len(prev)} dias · {ncmp} preços de outros sites · ' +
           (f"pechincha: {d['item']['o']} → {d['item']['city']} {d['item']['price']} € (normal {d['base']} €, −{round(d['off']*100)}%)" if d else 'sem pechincha hoje'))
+    lm, ed = to_compare(items, deal)
+    print('\nPARA COMPARAR (origem destino ida volta):')
+    for site, lst in (('lastminute.com', lm), ('eDreams', ed)):
+        for it in lst:
+            print(f"  {site:14} {it['o']} {it['to']} {it['out']['dep'][:10]} {it['in']['dep'][:10]}")
 
 
 if __name__ == '__main__':
