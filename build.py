@@ -71,8 +71,9 @@ LM_TOP, ED_TOP = 99, 4   # quantos destinos comparar no lastminute.com e no eDre
 
 def parse_cmp(path, items):
     """cmp.txt: preços do lastminute.com (lm) e do eDreams (ed) para as mesmas datas.
-    ORIGEM|DESTINO|data ida|data volta|site|preço|preço Prime ou -|hora ida|hora volta
-    Ex.: OPO|SVQ|2026-11-24|2026-11-28|lm|33.98|-|07:35|19:50"""
+    ORIGEM|DESTINO|data ida|data volta|site|preço|preço Prime ou -|hora ida|hora volta[|mac]
+    mac (só lastminute): o valor do parâmetro mac= do deeplink, para o link abrir a pesquisa certa.
+    Ex.: OPO|SVQ|2026-11-24|2026-11-28|lm|33.98|-|07:35|19:50|835654137106208768SCHv011659167019"""
     by = {(i['o'], i['to'], i['out']['dep'][:10], i['in']['dep'][:10]): i for i in items}
     n = 0
     for k, line in enumerate(Path(path).read_text(encoding='utf-8').splitlines(), 1):
@@ -80,7 +81,7 @@ def parse_cmp(path, items):
         if not line or line.startswith('#'):
             continue
         f = [x.strip() for x in line.split('|')]
-        if len(f) != 9 or f[4] not in ('lm', 'ed'):
+        if len(f) not in (9, 10) or f[4] not in ('lm', 'ed'):
             fail(f'cmp.txt linha {k}: formato inválido: {line}')
         it = by.get((f[0], f[1], f[2], f[3]))
         if not it:
@@ -88,6 +89,10 @@ def parse_cmp(path, items):
             continue
         try:
             entry = {'p': round(float(f[5]), 2), 'out': f[7], 'in': f[8]}
+            if len(f) == 10 and f[9]:
+                if 'SCH' not in f[9]:
+                    fail(f'cmp.txt linha {k}: mac inválido')
+                entry['mac'] = f[9]
             if f[6] not in ('-', ''):
                 entry['prime'] = round(float(f[6]), 2)
         except ValueError:

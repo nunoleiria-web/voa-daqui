@@ -285,10 +285,12 @@ const linkRow = (name, sub, url, label, tag) => `<div class="hrow"><div><b>${esc
 function links(it, P){
   const o = it.outbound.from, d = it.outbound.to, a = isoDay(it.outbound.departureTime), b = isoDay(it.inbound.departureTime);
   const b2 = s => s.slice(8, 10), my = s => s.slice(5, 7) + s.slice(0, 4);
+  const lmc = (it.cmp || {}).lm;
   const yymmdd = s => s.slice(2).replace(/-/g, ''), city = cityOf(it), cityEn = lastSeg(it).toCity.replace(/,.*$/, '');
   const kids = P.ages.length ? '&' + P.ages.map(x => `age=${x}`).join('&') : '';
   return {
-    lm: `https://www.lastminute.ie/msr/route/searching.do?departureAirport=${o}&arrivalAirport=${d}&outboundDay=${b2(a)}&outboundMonthYear=${my(a)}&returnDay=${b2(b)}&returnMonthYear=${my(b)}&adults=${P.adults}&childs=${P.children}&infants=${P.infants}&currency=EUR&url=search3.do&roundtrip=true`,
+    lm: lmc && lmc.mac ? (() => { const rid = lmc.mac.split('SCH')[0], j = Math.round(lmc.p * 1000);
+      return `https://www.lastminute.ie/msr/route/searching.do?departureAirport=${o}&arrivalAirport=${d}&outboundDay=${b2(a)}&outboundMonthYear=${my(a)}&returnDay=${b2(b)}&returnMonthYear=${my(b)}&adults=1&childs=0&infants=0&COBRANDED=LMNEN_LLMPROJECTEN&currency=EUR&url=search3.do&roundtrip=true&fareType=&requestId=${rid}&mac=${lmc.mac}&acntb=flight&utm_term=${o}${d}&utm_campaign=results&utm_medium=meta_search&utm_source=LMNEN_LLMPROJECTEN&bf_subsource=-----WS0S02RS01&j=${j}&jC=${j}_EUR&cp=0`; })() : 'https://www.lastminute.ie/',
     ed: `https://www.edreams.pt/travel/?deeplink=/results/ret=${b};infants=${P.infants};children=${P.children};adults=${P.adults};type=R;class=TOURIST;from.iata=${o};to.iata=${d};dep=${a};collectionmethod=16`,
     sky: `https://www.skyscanner.pt/transporte/voos/${o.toLowerCase()}/${(CITY_CODE[d] || d).toLowerCase()}/${yymmdd(a)}/${yymmdd(b)}/?adultsv2=${P.adults}${P.ages.length ? '&childrenv2=' + P.ages.join('|') : ''}`,
     gfl: `https://www.google.com/travel/flights?hl=pt-PT&curr=EUR&q=${encodeURIComponent(`Voos de ${o} para ${d} em ${a} regresso ${b}`)}`,
@@ -306,7 +308,7 @@ function compareHtml(it, P, L){
   const min = Math.min(...rows.map(r => r.p));
   rows.forEach(r => r.top = rows.length > 1 && r.p === min);
   const priced = rows.map(r => `<div class="crow ${r.top ? 'top' : ''}"><span>${esc(r.name)}${r.top ? '<em>mais barato</em>' : ''}</span><span class="cp">${eur(r.p)}${r.prime ? `<small>${eur0(r.prime)} para membros Prime pagos</small>` : ''}${r.other ? `<small>voos das ${esc(r.other.out)} e ${esc(r.other.in)}</small>` : ''}${P.payers > 1 ? `<small>por pessoa · ≈ ${eur0(r.p * P.payers)} total</small>` : ''}</span><a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir</a></div>`).join('');
-  const links = [!c.lm && ['lastminute.com', L.lm], !c.ed && ['eDreams', L.ed]].filter(Boolean)
+  const links = [!c.ed && ['eDreams', L.ed]].filter(Boolean)
     .map(([n, u]) => `<div class="crow"><span>${esc(n)}</span><span class="muted">abre com estas datas</span><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a></div>`).join('')
     + `<span class="note">Ver também no <a href="${esc(L.sky)}" target="_blank" rel="noopener">Skyscanner</a> ou no <a href="${esc(L.gfl)}" target="_blank" rel="noopener">Google Voos</a>.</span>`;
   const seen = rows.length > 1 && DATA ? ` Preços vistos hoje às ${pad2(new Date(DATA.updated).getHours())}:${pad2(new Date(DATA.updated).getMinutes())}.` : '';
