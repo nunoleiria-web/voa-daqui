@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Voa Daqui · voos baratos de Lisboa, Porto e Faro</title>
+<meta name="description" content="Os voos mais baratos de Lisboa, Porto e Faro e a Pechincha do dia, atualizados todas as manhãs.">
+<meta property="og:title" content="Voa Daqui · a Pechincha do dia">
+<meta property="og:description" content="Voos de Lisboa, Porto e Faro muito abaixo do preço habitual, atualizados todas as manhãs.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffbe2e'/%3E%3Cpath d='M14 18 6 15.5l2-2 9 1.3 5.3-6c1.3-1.3 3.4-1.8 4.2-1 .8.8.3 2.9-1 4.2l-6 5.3 1.3 9-2 2L14 18' fill='%231b1404'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{
+  --bg:#f2f3f7; --panel:#fff; --raise:#eef0f5; --line:#e2e5ee; --ink:#0e1525; --muted:#5b6680;
+  --brand:#ffbe2e; --brand-ink:#1b1404; --brand-soft:#fff2cf;
+  --go:#0b9a68; --go-soft:#dff5ec; --warn:#cf4f2b; --warn-soft:#fde5dd;
+  --shadow:0 1px 2px rgba(14,21,37,.06),0 8px 24px rgba(14,21,37,.06);
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace; --r:20px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#090e1a; --panel:#111a2c; --raise:#18233a; --line:#233150; --ink:#eff3fb; --muted:#93a1bf;
+  --brand:#ffc93c; --brand-ink:#1a1405; --brand-soft:#3a2f12; --go:#4fd29a; --go-soft:#123528; --warn:#ff8a65; --warn-soft:#3b1d14;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#090e1a; --panel:#111a2c; --raise:#18233a; --line:#233150; --ink:#eff3fb; --muted:#93a1bf;
+  --brand:#ffc93c; --brand-ink:#1a1405; --brand-soft:#3a2f12; --go:#4fd29a; --go-soft:#123528; --warn:#ff8a65; --warn-soft:#3b1d14;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.ic{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.page{max-width:1080px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:-.03em;display:flex;align-items:center;gap:8px}
+.logo i{width:30px;height:30px;border-radius:10px;background:var(--brand);display:grid;place-items:center;color:var(--brand-ink)}
+.logo i svg{width:17px;height:17px}
+.themebtn{border:1px solid var(--line);background:var(--panel);border-radius:999px;width:38px;height:38px;display:grid;place-items:center;cursor:pointer}
+.intro h1{font-family:var(--display);font-weight:800;font-size:clamp(1.9rem,6vw,2.8rem);line-height:1;letter-spacing:-.035em;margin:4px 0 6px;text-wrap:balance}
+.intro p{margin:0;color:var(--muted);max-width:60ch}
+.lbl{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.note{font-size:.82rem;color:var(--muted)}
+.btn{font-weight:700;font-size:.86rem;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.sm{font-size:.8rem;padding:7px 11px;border-radius:10px}
+/* deal */
+.deal{border-radius:var(--r);overflow:hidden;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);min-width:0}
+.deal.hot{border:2px solid var(--brand)}
+.dart{position:relative;height:220px;color:#fff;background:#1b2440;display:block;text-decoration:none}
+.dart>svg{position:absolute;inset:0;width:100%;height:100%}
+.shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(6,9,18,.9),rgba(6,9,18,.15) 62%)}
+.tag{position:absolute;top:12px;left:12px;display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;padding:5px 11px;border-radius:999px;background:var(--brand);color:#1b1404}
+.tag .ic{width:14px;height:14px}
+.off{position:absolute;top:10px;right:12px;font-family:var(--display);font-weight:800;font-size:1.9rem;line-height:1;color:#fff;background:#d6402a;padding:6px 10px;border-radius:12px;transform:rotate(3deg);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.place{position:absolute;left:16px;right:16px;bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.place>div:first-child{min-width:0}
+.place b.city{display:block;font-family:var(--display);font-weight:800;font-size:2.2rem;line-height:1;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.place span{display:block;font-size:.82rem;color:#dbe3f3;margin-top:6px}
+.pill{text-align:right;flex:none;background:rgba(10,15,28,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:6px 11px}
+.pill s{display:block;font-size:.74rem;color:#c3cbe0}
+.pill b{display:block;font-family:var(--mono);font-size:1.5rem;color:#ffc93c;line-height:1.05}
+.pill small{display:block;font-size:.66rem;color:#dbe3f3}
+.dbody{padding:14px 16px 16px;display:grid;gap:12px}
+.dlegend{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)}
+.dlegend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--brand)}
+.sw.line{height:0;width:16px;border-top:2px dashed var(--warn);border-radius:0;background:none}
+.dchart{width:100%;max-width:560px;height:auto;display:block}
+.minis{display:flex;gap:6px;flex-wrap:wrap}
+.mini{border:1px solid var(--line);background:var(--raise);border-radius:12px;padding:7px 10px;font-size:.82rem;display:inline-flex;gap:6px;align-items:baseline;text-decoration:none}
+.mini b{font-family:var(--mono)}
+.mini em{font-style:normal;font-weight:800;color:var(--warn)}
+.dfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.quiet{padding:16px;display:grid;gap:8px}
+.quiet b{display:flex;gap:8px;align-items:center;font-size:1.02rem}
+.quiet .meter{height:6px;border-radius:9px;background:var(--raise);overflow:hidden}
+.quiet .meter i{display:block;height:100%;background:var(--brand)}
+/* controls */
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.88rem;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.stp{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600}
+.stp b{font-family:var(--mono);min-width:1.2ch;text-align:center}
+.stp button{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-weight:800;font-size:1.05rem;cursor:pointer;line-height:1}
+.stp button:disabled{opacity:.35;cursor:default}
+.reshead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.reshead h2{font-family:var(--display);font-weight:800;font-size:1.5rem;letter-spacing:-.02em;margin:0}
+/* cards */
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0}
+.art{position:relative;height:150px;overflow:hidden;background:#1b2440;color:#fff}
+.art>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.art .place b.city{font-size:1.6rem}
+.cb{padding:12px 14px 14px;display:grid;gap:10px;flex:1}
+.facts{display:flex;gap:6px;flex-wrap:wrap}
+.fact{font-size:.78rem;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--raise);color:var(--muted)}
+.fact.ok{background:var(--go-soft);color:var(--go)}
+.fact.d{color:var(--ink)}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto}
+.crow .note{min-width:0}
+.grp{font-size:.8rem;color:var(--muted)}
+.grp b{color:var(--ink);font-family:var(--mono)}
+footer{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:6px}
+.state{padding:28px 16px;text-align:center;color:var(--muted)}
+@media (max-width:420px){.place b.city{font-size:1.75rem}.off{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-plane" viewBox="0 0 24 24"><path d="M10.5 13.5 3 11l1.5-1.5 7 1 4-4.5c1-1 2.6-1.4 3.2-.8.6.6.2 2.2-.8 3.2l-4.5 4 1 7L13 20l-2.5-7.5"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4Z"/><path d="M13 7v10" stroke-dasharray="2 2"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+</svg>
+<main class="page">
+  <div class="top">
+    <span class="logo"><i><svg class="ic"><use href="#i-plane"/></svg></i>Voa Daqui</span>
+    <button type="button" class="themebtn" id="themeBtn" aria-label="Mudar tema claro ou escuro"><svg class="ic"><use href="#i-moon"/></svg></button>
+  </div>
+  <section class="intro">
+    <h1>Os voos mais baratos de Lisboa, Porto e Faro</h1>
+    <p id="sub">Ida e volta, 2 a 4 noites, nas próximas 8 semanas. Atualizado todas as manhãs.</p>
+  </section>
+  <section id="dealBox" aria-live="polite"></section>
+  <section class="bar" aria-label="Filtros">
+    <div class="chips" id="from" role="group" aria-label="De onde">
+      <button type="button" data-v="all" aria-pressed="true">Todos</button>
+      <button type="button" data-v="LIS" aria-pressed="false">Lisboa</button>
+      <button type="button" data-v="OPO" aria-pressed="false">Porto</button>
+      <button type="button" data-v="FAO" aria-pressed="false">Faro</button>
+    </div>
+    <span class="stp" aria-label="Quantas pessoas"><button type="button" id="pm" aria-label="Menos uma pessoa">−</button><b id="pn">1</b><span id="pl">pessoa</span><button type="button" id="pp" aria-label="Mais uma pessoa">+</button></span>
+  </section>
+  <section>
+    <div class="reshead"><h2 id="resT">A carregar…</h2><div class="chips" id="sort" role="group" aria-label="Ordenar"><button type="button" data-v="price" aria-pressed="true">Mais barato</button><button type="button" data-v="date" aria-pressed="false">Mais cedo</button></div></div>
+    <p class="note" id="grpNote" hidden></p>
+    <div class="grid" id="grid" style="margin-top:12px"></div>
+  </section>
+  <footer>
+    <span class="note" id="upd"></span>
+    <span class="note">Preços do Kiwi.com por pessoa, ida e volta, só com mochila pequena. Mudam a toda a hora: confirma sempre o preço final antes de pagar.</span>
+  </footer>
+</main>
+<script src="assets/core.js"></script>
+<script>
+(() => {
+const icon = n => `<svg class="ic"><use href="#i-${n}"/></svg>`;
+// theme
+const TKEY = 'voa-daqui-theme';
+const setTheme = t => { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; };
+try { setTheme(localStorage.getItem(TKEY)); } catch (e){}
+$('themeBtn').addEventListener('click', () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const t = dark ? 'light' : 'dark'; setTheme(t); try { localStorage.setItem(TKEY, t); } catch (e){}
+});
+
+const D = s => new Date(s.length > 10 ? s : s + 'T12:00:00');
+const fmtShort = s => { const d = D(s); return `${WD[d.getDay()]} ${d.getDate()} ${MO[d.getMonth()]}`; };
+const fmtDM = s => { const d = D(s); return `${d.getDate()} ${MO[d.getMonth()]}`; };
+const hm = s => s.slice(11, 16);
+const nights = it => Math.round((D(it.in.dep.slice(0, 10)) - D(it.out.dep.slice(0, 10))) / 864e5);
+const countryPt = c => COUNTRY[c] ?? c;
+const cityPt = c => pt(c).replace(/,.*$/, '');
+const title = it => `${ORIGIN[it.o]} → ${cityPt(it.city)}`;
+let data = null, from = 'all', sort = 'price', people = 1;
+try { people = Math.min(9, Math.max(1, +localStorage.getItem('voa-daqui-people') || 1)); } catch (e){}
+
+function chart(c){
+  const pts = c.hist.map(h => ({label: fmtDM(h.d), v: h.p, lb: h.lb})).concat([{label: 'hoje', v: c.item.price, deal: true}]);
+  const W = 360, H = 130, pl = 6, pr = 6, pt0 = 20, pb = 22, n = pts.length, bw = (W - pl - pr) / n;
+  const hi = Math.max(...pts.map(p => p.v), c.base) * 1.1, y = v => pt0 + (H - pt0 - pb) * (1 - v / hi);
+  const fs = n > 9 ? 8.5 : 10;
+  let g = '';
+  pts.forEach((p, k) => {
+    const x = pl + k * bw + bw * .16, w = bw * .68, t = y(p.v);
+    g += `<rect x="${x}" y="${t}" width="${w}" height="${H - pb - t}" rx="4" fill="${p.deal ? 'var(--brand)' : 'var(--line)'}" ${p.lb ? 'fill-opacity=".55" stroke="var(--muted)" stroke-dasharray="3 3"' : ''}/>`;
+    g += `<text x="${x + w / 2}" y="${t - 5}" text-anchor="middle" font-size="${fs}" font-weight="${p.deal ? 800 : 600}" fill="var(--ink)" font-family="var(--mono)">${p.lb ? '>' : ''}${Math.round(p.v)}</text>`;
+    g += `<text x="${x + w / 2}" y="${H - 6}" text-anchor="middle" font-size="${fs}" fill="var(--muted)">${esc(p.label)}</text>`;
+  });
+  const by = y(c.base);
+  g += `<line x1="${pl}" x2="${W - pr}" y1="${by}" y2="${by}" stroke="var(--warn)" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  return `<div class="dlegend"><span><i class="sw"></i>preço mais baixo visto em cada dia (€)</span><span><i class="sw line"></i>normal ${c.base} €</span></div><svg class="dchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Preço de hoje ${c.item.price} € contra o normal de ${c.base} €">${g}</svg>`;
+}
+function renderDeal(){
+  const box = $('dealBox'), c = data.deal;
+  const minis = (data.others || []).map(o => `<a class="mini" href="${esc(o.item.url)}" target="_blank" rel="noopener"><b>${eur0(o.item.price)}</b> ${esc(title(o.item))}<em>−${Math.round(o.off * 100)}%</em></a>`).join('');
+  if (!c){
+    box.className = 'deal';
+    if (data.days < data.needDays){
+      const left = data.needDays - data.days;
+      box.innerHTML = `<div class="quiet"><b>${icon('clock')} A Pechincha do dia está a aprender os preços</b><span class="note">Para saber o que é "muito mais barato que o normal", o site guarda os preços de cada dia. A primeira pechincha aparece ${left === 1 ? 'amanhã' : `daqui a ${left} dias`}.</span><div class="meter"><i style="width:${Math.round(data.days / data.needDays * 100)}%"></i></div></div>`;
+    } else {
+      const t = data.top;
+      box.innerHTML = `<div class="quiet"><b>${icon('ticket')} Hoje não há pechinchas fora do normal</b><span class="note">${t ? `A maior descida é ${esc(title(t.item))} a ${eur0(t.item.price)}, ${Math.round(t.off * 100)}% abaixo do habitual: barato, mas não excecional.` : 'Os preços de hoje estão dentro do habitual.'}</span>${minis ? `<div class="minis">${minis}</div>` : ''}</div>`;
+    }
+    return;
+  }
+  const it = c.item, n = nights(it);
+  box.className = 'deal hot';
+  box.innerHTML = `<a class="dart" href="${esc(it.url)}" target="_blank" rel="noopener" aria-label="Ver no Kiwi: ${esc(title(it))} a ${eur0(it.price)}">${art(it.to, it.country, 220)}<div class="shade"></div>
+      <span class="tag">${icon('ticket')}Pechincha do dia</span><span class="off">−${Math.round(c.off * 100)}%</span>
+      <div class="place"><div><b class="city">${esc(cityPt(it.city))}</b><span>${esc(deO(it.o))} · ${fmtShort(it.out.dep)} → ${fmtShort(it.in.dep)} · ${n} noite${n > 1 ? 's' : ''}</span></div>
+      <div class="pill"><s>normal ${c.base} €</s><b>${eur0(it.price)}</b><small>ida e volta, por pessoa</small></div></div></a>
+    <div class="dbody">
+      <div>${c.lb ? 'Pelo menos ' : ''}<b>${Math.round(c.off * 100)}% abaixo</b> do preço habitual para ${esc(cityPt(it.city))} ${esc(deO(it.o))}, comparando com os últimos ${c.hist.length} dias. Voo ${it.out.stops + it.in.stops === 0 ? 'direto' : 'com escala'}, ${esc(it.carrier)}.</div>
+      ${chart(c)}
+      ${minis ? `<div><div class="lbl" style="margin-bottom:6px">Outras descidas fortes · por pessoa</div><div class="minis">${minis}</div></div>` : ''}
+      <div class="dfoot"><span class="note">Estas ofertas costumam desaparecer em poucas horas.</span><a class="btn primary" href="${esc(it.url)}" target="_blank" rel="noopener">Ver no Kiwi.com</a></div>
+    </div>`;
+}
+function card(it){
+  const n = nights(it), direct = it.out.stops + it.in.stops === 0;
+  const grp = people > 1 ? `<span class="grp">≈ <b>${eur0(it.price * people)}</b> para ${people}</span>` : '';
+  return `<article class="card"><div class="art">${art(it.to, it.country, 150)}<div class="shade"></div>
+      <div class="place"><div><b class="city">${esc(cityPt(it.city))}</b><span>${esc(countryPt(it.country))} · ${esc(deO(it.o))}</span></div><div class="pill"><b>${eur0(it.price)}</b><small>por pessoa</small></div></div></div>
+    <div class="cb"><div class="facts"><span class="fact d">${fmtShort(it.out.dep)} → ${fmtShort(it.in.dep)}</span><span class="fact">${n} noite${n > 1 ? 's' : ''}</span>${direct ? '<span class="fact ok">Direto</span>' : '<span class="fact">Com escala</span>'}</div>
+      <span class="note">${esc(it.carrier)} · ida às ${hm(it.out.dep)}, volta às ${hm(it.in.dep)}</span>
+      <div class="crow">${grp || '<span></span>'}<a class="btn sm primary" href="${esc(it.url)}" target="_blank" rel="noopener">Ver no Kiwi.com</a></div></div></article>`;
+}
+function renderList(){
+  let list = data.items.slice();
+  if (from === 'all'){ const best = new Map(); for (const it of list){ const k = it.city; if (!best.has(k) || best.get(k).price > it.price) best.set(k, it); } list = [...best.values()]; }
+  else list = list.filter(it => it.o === from);
+  list.sort(sort === 'price' ? (a, b) => a.price - b.price : (a, b) => a.out.dep.localeCompare(b.out.dep));
+  $('resT').textContent = list.length ? `${list.length} destinos desde ${eur0(Math.min(...list.map(i => i.price)))}` : 'Sem voos';
+  $('grid').innerHTML = list.map(card).join('') || '<div class="state">Sem voos para esta origem hoje.</div>';
+  $('grpNote').hidden = people === 1;
+  $('grpNote').textContent = `Total estimado para ${people} pessoas. Os lugares mais baratos costumam ser poucos: confirma no Kiwi se há para todos.`;
+}
+function drawPeople(){ $('pn').textContent = people; $('pl').textContent = people > 1 ? 'pessoas' : 'pessoa'; $('pm').disabled = people <= 1; $('pp').disabled = people >= 9; }
+const press = (groupId, v) => document.querySelectorAll(`#${groupId} button`).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+$('from').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !data) return; from = b.dataset.v; press('from', from); renderList(); });
+$('sort').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !data) return; sort = b.dataset.v; press('sort', sort); renderList(); });
+const step = d => { people = Math.min(9, Math.max(1, people + d)); try { localStorage.setItem('voa-daqui-people', people); } catch (e){} drawPeople(); if (data) renderList(); };
+$('pm').addEventListener('click', () => step(-1)); $('pp').addEventListener('click', () => step(1));
+drawPeople();
+
+fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => {
+  data = j;
+  const u = new Date(j.updated), today = new Date().toDateString() === u.toDateString();
+  $('upd').textContent = `Atualizado ${today ? 'hoje' : `a ${u.getDate()} ${MO[u.getMonth()]}`} às ${pad(u.getHours())}:${pad(u.getMinutes())}.`;
+  $('sub').textContent = `Ida e volta, 2 a 4 noites, partidas nas próximas 8 semanas. Atualizado todas as manhãs.`;
+  renderDeal(); renderList();
+}).catch(() => { $('resT').textContent = 'Não foi possível carregar os voos'; $('grid').innerHTML = '<div class="state">Tenta recarregar a página daqui a pouco.</div>'; });
+})();
+</script>
+</body>
+</html>
