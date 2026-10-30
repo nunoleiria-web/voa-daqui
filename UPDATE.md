@@ -13,11 +13,13 @@ Todas as manhãs uma tarefa agendada do Claude faz isto:
 2. **Escrever `rows.txt`**, uma linha por itinerário devolvido (até 15 por origem), campos separados por `|`:
 
    ```
-   ORIGEM|DESTINO|Cidade|País|preço|partida ida|chegada ida|escalas ida|partida volta|chegada volta|escalas volta|companhia|bookingUrl
+   ORIGEM|DESTINO|Cidade|País|preço|partida ida|chegada ida|escalas ida|minutos ida|partida volta|chegada volta|escalas volta|minutos volta|companhia|bookingUrl
    ```
 
    - Cidade e País: `toCity` e `toCountry` do último segmento da ida, em inglês, como vêm do Kiwi.
    - Datas: `aaaa-mm-ddThh:mm` (hora local, sem segundos).
+   - Minutos: `durationSeconds` da ida e da volta a dividir por 60.
+   - Exemplo: `OPO|SVQ|Seville|Spain|38|2026-11-24T07:35|2026-11-24T09:50|0|75|2026-11-28T19:50|2026-11-28T20:05|0|75|Ryanair|https://kiwi.com/u/4569xjv`
    - Companhia: `carrierName` da ida; se a volta for de outra companhia, `Ida + Volta` (ex.: `Ryanair + Vueling`).
    - bookingUrl: copiado exatamente.
 

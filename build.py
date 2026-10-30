@@ -4,9 +4,9 @@
 Uso:  python3 build.py rows.txt
 
 rows.txt tem uma linha por voo (ida e volta), campos separados por "|":
-  ORIGEM|DESTINO|Cidade|País|preço|partida ida|chegada ida|escalas ida|partida volta|chegada volta|escalas volta|companhia|bookingUrl
+  ORIGEM|DESTINO|Cidade|País|preço|partida ida|chegada ida|escalas ida|minutos ida|partida volta|chegada volta|escalas volta|minutos volta|companhia|bookingUrl
 Exemplo:
-  OPO|SVQ|Seville|Spain|38|2026-11-24T07:35|2026-11-24T09:50|0|2026-11-28T19:50|2026-11-28T20:05|0|Ryanair|https://kiwi.com/u/4569xjv
+  OPO|SVQ|Seville|Spain|38|2026-11-24T07:35|2026-11-24T09:50|0|75|2026-11-28T19:50|2026-11-28T20:05|0|75|Ryanair|https://kiwi.com/u/4569xjv
 
 Cidade e país ficam em inglês, tal como o Kiwi os devolve (a página traduz).
 O histórico de preços (data/history.json) serve para saber o preço "normal"
@@ -35,16 +35,16 @@ def parse(path):
         if not line or line.startswith('#'):
             continue
         f = [x.strip() for x in line.split('|')]
-        if len(f) != 13:
-            fail(f'linha {n}: esperava 13 campos, tem {len(f)}: {line}')
-        o, to, city, country, price, od, oa, os_, idp, ia, is_, car, url = f
+        if len(f) != 15:
+            fail(f'linha {n}: esperava 15 campos, tem {len(f)}: {line}')
+        o, to, city, country, price, od, oa, os_, om, idp, ia, is_, im, car, url = f
         if o not in ORIGINS:
             fail(f'linha {n}: origem inválida {o}')
         try:
             price = float(price)
             for t in (od, oa, idp, ia):
                 dt.datetime.fromisoformat(t)
-            os_, is_ = int(os_), int(is_)
+            os_, is_, om, im = int(os_), int(is_), int(om), int(im)
         except ValueError as e:
             fail(f'linha {n}: {e}')
         if not url.startswith('https://'):
@@ -59,7 +59,7 @@ def parse(path):
             items.remove(prev)
         seen.add(key)
         items.append({'key': key, 'o': o, 'to': to, 'city': city, 'country': country, 'price': round(price),
-                      'out': {'dep': od, 'arr': oa, 'stops': os_}, 'in': {'dep': idp, 'arr': ia, 'stops': is_},
+                      'out': {'dep': od, 'arr': oa, 'stops': os_, 'min': om}, 'in': {'dep': idp, 'arr': ia, 'stops': is_, 'min': im},
                       'carrier': car, 'url': url})
     if len(items) < 5:
         fail(f'só {len(items)} voos válidos: algo correu mal nas pesquisas')
