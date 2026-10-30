@@ -306,8 +306,9 @@ function compareHtml(it, P, L){
   const min = Math.min(...rows.map(r => r.p));
   rows.forEach(r => r.top = rows.length > 1 && r.p === min);
   const priced = rows.map(r => `<div class="crow ${r.top ? 'top' : ''}"><span>${esc(r.name)}${r.top ? '<em>mais barato</em>' : ''}</span><span class="cp">${eur(r.p)}${r.prime ? `<small>${eur0(r.prime)} para membros Prime pagos</small>` : ''}${r.other ? `<small>voos das ${esc(r.other.out)} e ${esc(r.other.in)}</small>` : ''}${P.payers > 1 ? `<small>por pessoa · ≈ ${eur0(r.p * P.payers)} total</small>` : ''}</span><a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir</a></div>`).join('');
-  const links = [!c.lm && ['lastminute.com', L.lm], !c.ed && ['eDreams', L.ed], ['Skyscanner', L.sky], ['Google Voos', L.gfl]].filter(Boolean)
-    .map(([n, u]) => `<div class="crow"><span>${esc(n)}</span><span class="muted">ver preço</span><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a></div>`).join('');
+  const links = [!c.lm && ['lastminute.com', L.lm], !c.ed && ['eDreams', L.ed]].filter(Boolean)
+    .map(([n, u]) => `<div class="crow"><span>${esc(n)}</span><span class="muted">abre com estas datas</span><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a></div>`).join('')
+    + `<span class="note">Ver também no <a href="${esc(L.sky)}" target="_blank" rel="noopener">Skyscanner</a> ou no <a href="${esc(L.gfl)}" target="_blank" rel="noopener">Google Voos</a>.</span>`;
   const seen = rows.length > 1 && DATA ? ` Preços vistos hoje às ${pad2(new Date(DATA.updated).getHours())}:${pad2(new Date(DATA.updated).getMinutes())}.` : '';
   return `<span class="note">Mesmas datas, por pessoa, só com mochila.${seen} Os outros sites abrem já com os aeroportos, as datas e ${paxLabel(P)}.</span>${priced}${links}
     <span class="note">O eDreams e o lastminute.com mostram o preço sem malas; acrescenta-as lá. Confirma horários e malas antes de pagar.</span>`;

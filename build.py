@@ -66,7 +66,7 @@ def parse(path):
     return items
 
 
-LM_TOP, ED_TOP = 12, 4   # quantos destinos comparar no lastminute.com e no eDreams
+LM_TOP, ED_TOP = 99, 4   # quantos destinos comparar no lastminute.com e no eDreams
 
 
 def parse_cmp(path, items):
