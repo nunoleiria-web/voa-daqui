@@ -154,10 +154,14 @@ const totalDur = it => (it.outbound.durationSeconds || 0) + (it.inbound ? it.inb
 const isDirect = it => it.outbound.stops === 0 && (!it.inbound || it.inbound.stops === 0);
 const airlinesOf = it => [...new Set([...it.outbound.segments, ...it.inbound.segments].map(s => s.carrierName))].join(', ');
 // preço mais baixo entre os sites (Kiwi, lastminute com link exato, eDreams)
+// No computador o lastminute junta uma "taxa de agência" (visto: 10,45 € por pessoa); no telemóvel não.
+const DESKTOP = (() => { try { return matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e){ return false; } })();
+const LM_FEE = DESKTOP ? 10.5 : 0;
+const lmPrice = c => c.lm ? Math.round((c.lm.p + LM_FEE) * 100) / 100 : null;
 function bestOf(it, P){
   const c = it.cmp || {}, L = links(it, P || group());
   const r = [{p: it.price, site: 'kiwi', name: 'Kiwi.com', url: it.bookingUrl}];
-  if (c.lm && c.lm.mac) r.push({p: c.lm.p, site: 'lm', name: 'lastminute', url: L.lm});
+  if (c.lm && c.lm.mac) r.push({p: lmPrice(c), site: 'lm', name: 'lastminute', url: L.lm});
   if (c.ed) r.push({p: c.ed.p, site: 'ed', name: 'eDreams', url: L.ed});
   return r.reduce((a, b) => b.p < a.p - 0.005 ? b : a);
 }
@@ -328,12 +332,13 @@ function links(it, P){
 function compareHtml(it, P, L){
   const c = it.cmp || {}, oh = fmtHM(it.outbound.departureTime), ih = fmtHM(it.inbound.departureTime);
   const rows = [{name: 'Kiwi.com', p: it.price, url: it.bookingUrl}];
-  if (c.lm) rows.push({name: 'lastminute.com', p: c.lm.p, url: L.lm, other: c.lm.out !== oh || c.lm.in !== ih ? c.lm : null});
+  if (c.lm) rows.push({name: 'lastminute.com', p: lmPrice(c), fee: LM_FEE, url: L.lm, other: c.lm.out !== oh || c.lm.in !== ih ? c.lm : null});
   if (c.ed) rows.push({name: 'eDreams', p: c.ed.p, prime: c.ed.prime, url: L.ed, other: c.ed.out !== oh || c.ed.in !== ih ? c.ed : null});
   const min = Math.min(...rows.map(r => r.p));
   rows.forEach(r => r.top = rows.length > 1 && r.p === min);
-  const priced = rows.map(r => `<div class="crow ${r.top ? 'top' : ''}"><span>${esc(r.name)}${r.top ? '<em>mais barato</em>' : ''}</span><span class="cp">${eur(r.p)}${r.prime ? `<small>${eur0(r.prime)} para membros Prime pagos</small>` : ''}${r.other ? `<small>voos das ${esc(r.other.out)} e ${esc(r.other.in)}</small>` : ''}${P.payers > 1 ? `<small>por pessoa · ≈ ${eur0(r.p * P.payers)} total</small>` : ''}</span><a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir</a></div>`).join('');
-  const links = [!c.ed && ['eDreams', L.ed]].filter(Boolean)
+  const priced = rows.map(r => `<div class="crow ${r.top ? 'top' : ''}"><span>${esc(r.name)}${r.top ? '<em>mais barato</em>' : ''}</span><span class="cp">${eur(r.p)}${r.prime ? `<small>${eur0(r.prime)} para membros Prime pagos</small>` : ''}${r.fee ? `<small>inclui ≈10 € de taxa de agência no computador; no telemóvel não há</small>` : ''}${r.other ? `<small>voos das ${esc(r.other.out)} e ${esc(r.other.in)}</small>` : ''}${P.payers > 1 ? `<small>por pessoa · ≈ ${eur0(r.p * P.payers)} total</small>` : ''}</span><a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir</a></div>`).join('');
+  const dir = directLink(it, P);
+  const links = (dir ? `<div class="crow direct"><span>${esc(dir.name)}<em class="neutral">site oficial</em></span><span class="muted">sem taxas de agência</span><a class="btn sm" href="${esc(dir.url)}" target="_blank" rel="noopener">Abrir</a></div>` : '') + [!c.ed && ['eDreams', L.ed]].filter(Boolean)
     .map(([n, u]) => `<div class="crow"><span>${esc(n)}</span><span class="muted">abre com estas datas</span><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a></div>`).join('')
     + `<span class="note">Ver também no <a href="${esc(L.sky)}" target="_blank" rel="noopener">Skyscanner</a> ou no <a href="${esc(L.gfl)}" target="_blank" rel="noopener">Google Voos</a>.</span>`;
   const seen = rows.length > 1 && DATA ? ` Preços vistos hoje às ${pad2(new Date(DATA.updated).getHours())}:${pad2(new Date(DATA.updated).getMinutes())}.` : '';
@@ -489,6 +494,19 @@ $('dealBox').addEventListener('click', e => {
 });
 $('dealBox').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.dart') && DATA && DATA.deal){ e.preventDefault(); openTripFor(toIt(DATA.deal.item), group()); } });
 
+// ---------- comprar direto na companhia (sem taxas de agência, não dá comissão) ----------
+const AIRLINE_HOME = {'TAP Portugal': 'https://www.flytap.com/pt-pt', 'Vueling': 'https://www.vueling.com/pt', 'Wizz Air': 'https://wizzair.com/pt-pt', 'Wizz Air Malta': 'https://wizzair.com/pt-pt',
+  'Transavia': 'https://www.transavia.com', 'Transavia France': 'https://www.transavia.com', 'Volotea': 'https://www.volotea.com/pt', 'Iberia Airlines': 'https://www.iberia.com/pt', 'Air Europa': 'https://www.aireuropa.com/pt/pt/home',
+  'Jet2': 'https://www.jet2.com', 'Aer Lingus': 'https://www.aerlingus.com', 'Eurowings': 'https://www.eurowings.com/pt.html', 'Swiss International Air Lines': 'https://www.swiss.com/pt/pt', 'KLM Royal Dutch Airlines': 'https://www.klm.pt'};
+function directLink(it, P){
+  const cars = [...new Set([...it.outbound.segments, ...it.inbound.segments].map(x => x.carrierName))];
+  if (cars.length !== 1) return null;
+  const c = cars[0], o = it.outbound.from, d = it.outbound.to, a = isoDay(it.outbound.departureTime), b = isoDay(it.inbound.departureTime);
+  if (c === 'Ryanair') return {name: 'Ryanair', url: `https://www.ryanair.com/pt/pt/trip/flights/select?adults=${P.adults}&teens=0&children=${P.children}&infants=${P.infants}&dateOut=${a}&dateIn=${b}&isConnectedFlight=false&discount=0&promoCode=&isReturn=true&originIata=${o}&destinationIata=${d}`};
+  if (c === 'easyJet') return {name: 'easyJet', url: `https://www.easyjet.com/pt/buy/flights?isOneWay=off&dep=${o}&dest=${d}&dd=${a}&rd=${b}&apax=${P.adults}&cpax=${P.children}&ipax=${P.infants}`};
+  return AIRLINE_HOME[c] ? {name: c, url: AIRLINE_HOME[c]} : null;
+}
+
 // ---------- pesquisa livre (Kiwi.com e lastminute.com) ----------
 const CFG = window.VOA_CONFIG || {};
 // links de afiliado: ficam ativos quando houver códigos em assets/config.js
@@ -531,7 +549,7 @@ function liveSearch(){
   const when = `${fmtShort(a + 'T12:00')}${b ? ' a ' + fmtShort(b + 'T12:00') : ', só ida'}`;
   // o que já vimos hoje para esta rota (montra e pontes)
   const same = x => x.o === o && (x.to === d || CITY_CODE[x.to] === d);
-  const seen = DATA.items.filter(same).concat(...(DATA.pontes || []).map(p => p.items.filter(same))).sort((x, y) => (x.best ?? x.price) - (y.best ?? y.price))[0];
+  const seen = DATA.items.filter(same).concat(...(DATA.pontes || []).map(p => p.items.filter(same))).sort((x, y) => bestOf(toIt(x), P).p - bestOf(toIt(y), P).p)[0];
   ctx = {P, o: opts(), mode: 'live', budget: 0, label: ''};
   current = seen ? [toIt(seen)] : [];
   collapse(`${apName(o)} → ${apName(d)}`, `${when} · ${paxText()}`);
@@ -539,10 +557,10 @@ function liveSearch(){
       <div class="lhead"><h2>${esc(apName(o))} → ${esc(apName(d))}</h2><p>${esc(when)}, ${esc(paxLabel(P))}. Escolhe onde ver os preços ao minuto:</p></div>
       <div class="lbtns">
         <a class="lbtn" href="${esc(kiwi)}" target="_blank" rel="noopener"><b>Ver no Kiwi.com</b><span>Junta companhias diferentes na ida e na volta e encontra combinações low-cost.</span><i>Abrir pesquisa</i></a>
-        <a class="lbtn" href="${esc(lm)}" target="_blank" rel="noopener"><b>Ver no lastminute.com</b><span>Preço final com as taxas incluídas. Tem também voo + hotel.</span><i>Abrir pesquisa</i></a>
+        <a class="lbtn" href="${esc(lm)}" target="_blank" rel="noopener"><b>Ver no lastminute.com</b><span>${DESKTOP ? 'No computador junta uma taxa de agência (≈10 € por pessoa); no telemóvel costuma sair mais barato.' : 'No telemóvel não cobra taxa de agência. Tem também voo + hotel.'}</span><i>Abrir pesquisa</i></a>
       </div>
       <p class="note">Abre noutro separador, já com os aeroportos, as datas e ${esc(paxLabel(P))}. Também podes comparar no <a href="${esc(sky)}" target="_blank" rel="noopener">Skyscanner</a> ou no <a href="${esc(gfl)}" target="_blank" rel="noopener">Google Voos</a>.</p>
-      ${seen ? `<div class="lseen"><span>Hoje vimos ${esc(cityOf(current[0]))} ${esc(deO(o))} desde <b>${eur0(seen.best ?? seen.price)}</b> por pessoa, ${esc(fmtShort(current[0].outbound.departureTime))} a ${esc(fmtShort(current[0].inbound.departureTime))}.</span><button type="button" class="btn sm" data-open="0">Ver essa viagem</button></div>` : ''}
+      ${seen ? `<div class="lseen"><span>Hoje vimos ${esc(cityOf(current[0]))} ${esc(deO(o))} desde <b>${eur0(bestOf(current[0], P).p)}</b> por pessoa, ${esc(fmtShort(current[0].outbound.departureTime))} a ${esc(fmtShort(current[0].inbound.departureTime))}.</span><button type="button" class="btn sm" data-open="0">Ver essa viagem</button></div>` : ''}
     </section>`;
 }
 
@@ -590,13 +608,14 @@ function showDefault(){
 let BOARD = [];
 function renderBoard(){
   const seen = new Set(); BOARD = [];
-  for (const x of DATA.items.slice().sort((a, b) => (a.best ?? a.price) - (b.best ?? b.price))){
+  const bp = x => bestOf(toIt(x), group()).p;
+  for (const x of DATA.items.slice().sort((a, b) => bp(a) - bp(b))){
     const c = pt(x.city).replace(/,.*$/, ''); if (seen.has(c)) continue; seen.add(c); BOARD.push(x); if (BOARD.length === 8) break;
   }
   const u = new Date(DATA.updated);
   $('boardT').textContent = `Atualizado ${new Date().toDateString() === u.toDateString() ? 'hoje' : 'a ' + fmtDay(u)} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}`;
   $('boardL').innerHTML = BOARD.map((x, k) => { const it = toIt(x), n = nightsOf(it);
-    return `<li><button type="button" data-board="${k}"><span class="bt"><b>${esc(cityOf(it))}</b><small>${esc(deO(x.o))}, ${esc(fmtDay(atNoon(x.out.dep)))} a ${esc(fmtDay(atNoon(x.in.dep)))}, ${n} noite${n > 1 ? 's' : ''}</small></span><span class="bp">${eur0(x.best ?? x.price)}</span></button></li>`; }).join('');
+    return `<li><button type="button" data-board="${k}"><span class="bt"><b>${esc(cityOf(it))}</b><small>${esc(deO(x.o))}, ${esc(fmtDay(atNoon(x.out.dep)))} a ${esc(fmtDay(atNoon(x.in.dep)))}, ${n} noite${n > 1 ? 's' : ''}</small></span><span class="bp">${eur0(bp(x))}</span></button></li>`; }).join('');
 }
 $('boardL').addEventListener('click', e => { const b = e.target.closest('[data-board]'); if (b && BOARD[+b.dataset.board]) openTripFor(toIt(BOARD[+b.dataset.board]), group()); });
 
