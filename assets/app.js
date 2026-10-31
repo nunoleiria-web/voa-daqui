@@ -30,12 +30,11 @@ function closeSheet(){
 }
 document.addEventListener('click', e => { if (openSheetEl && e.target.closest('[data-close]') && openSheetEl.contains(e.target)) closeSheet(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
-$('hero').insertAdjacentHTML('afterbegin', art('LIS', 'Portugal', 220).replace('<svg ', '<svg class="bg" ').replace('</svg>', `<path d="M-10 160 Q140 40 420 70" stroke="#fff" stroke-opacity=".55" stroke-width="1.4" stroke-dasharray="5 6" fill="none"/><g transform="translate(300 72) rotate(-8)"><path d="M-14 0 L14 -1 L18 0 L14 1 L-14 0 Z M-2 0 L-8 -9 L-4 -9 L6 0 Z M-2 0 L-8 9 L-4 9 L6 0 Z M-13 0 L-17 -5 L-15 -5 L-10 0 Z" fill="#fff"/></g></svg>`));
 
 // ---------- views ----------
-document.querySelectorAll('.tabbar [data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 function showView(v){
-  document.querySelectorAll('.tabbar [data-view]').forEach(b => { if (b.dataset.view === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  document.querySelectorAll('[data-view]').forEach(b => { if (b.dataset.view === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   $('viewSearch').hidden = v !== 'search'; $('viewList').hidden = v !== 'list';
   window.scrollTo({top: 0});
 }
@@ -187,8 +186,8 @@ function matchDest(it){
   return list.includes(code) || list.includes(cc);
 }
 const summaryText = () => `${sel.from === 'both' ? 'De Lisboa, Porto e Faro' : sel.from === 'OPO' ? 'Do Porto' : 'De ' + ORIGIN[sel.from]} · ${paxText()}`;
-const collapse = (title, sub) => { $('form').hidden = true; $('hero').hidden = true; $('dealBox').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
-$('edit').addEventListener('click', () => { $('form').hidden = false; $('summary').hidden = true; renderDeal(); window.scrollTo({top: 0, behavior: 'smooth'}); });
+const collapse = (title, sub) => { $('form').hidden = true; $('band').hidden = true; $('dealBox').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
+$('edit').addEventListener('click', () => { $('form').hidden = false; $('band').hidden = false; $('summary').hidden = true; renderDeal(); window.scrollTo({top: 0, behavior: 'smooth'}); });
 function showErr(msg){ $('out').innerHTML = `<div class="state err"><b>${esc(msg)}</b></div>`; }
 $('go').addEventListener('click', search);
 function search(){
@@ -238,7 +237,7 @@ function sortBar(){
 function renderResults(){
   const P = ctx.P, idx = sortIdx(current.map((_, i) => i)), u = new Date(DATA.updated);
   const min = Math.min(...current.map(it => priceFor(it, P)));
-  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.mode === 'pack' ? `${current.length} viage${current.length === 1 ? 'm' : 'ns'} com voo + hotel desde ${eur0(min)}` : ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div></div>
+  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.home ? `${current.length} destinos a partir de ${eur0(min)}` : ctx.mode === 'pack' ? `${current.length} viage${current.length === 1 ? 'm' : 'ns'} com voo + hotel desde ${eur0(min)}` : ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div></div>
     ${sortBar()}
     ${ctx.mode === 'pack' ? `<p class="note">Total para ${paxLabel(P)}: voo no site mais barato + alojamento com nota 7 ou mais no Booking, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}. O alojamento é estimado a partir do preço para 2 pessoas num quarto.</p>` : ''}
     ${P.total > 1 && ctx.mode !== 'pack' ? `<p class="note">Total estimado para ${paxLabel(P)}. Os lugares mais baratos costumam ser poucos: confirma se há para todos antes de pagar.</p>` : ''}
@@ -252,21 +251,21 @@ function card(i, x = {}){
   const it = current[i], P = ctx.P, n = nightsOf(it);
   const b = bestOf(it, P), pack = ctx.mode === 'pack' && it.hotel;
   const total = pack ? packPrice(it, P) : groupPrice(it, P);
-  const perTxt = pack ? `voo + hotel · ${paxLabel(P)}` : P.payers > 1 ? `${eur0(b.p)} por pessoa` : 'ida e volta';
+  const perTxt = pack ? `voo + hotel, ${paxLabel(P)}` : P.payers > 1 ? `${eur0(b.p)} por pessoa` : 'ida e volta';
   const facts = [`<span class="fact">${esc(fmtShort(it.outbound.departureTime))} → ${esc(fmtShort(it.inbound.departureTime))}</span>`,
-    isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', '<span class="fact dim">Só mochila</span>', cheaperElsewhere(it)].join('');
+    isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', cheaperElsewhere(it)].join('');
   const saved = listUrls().has(it.bookingUrl);
-  return `<article class="dcard ${x.feat ? 'feat' : ''}">
-    <div class="art" data-open="${i}" role="button" tabindex="0" aria-label="Ver viagem para ${esc(cityOf(it))}, ${eur0(total)}">${art(it.outbound.to, countryEn(it), x.feat ? 260 : 200)}<div class="shade"></div>
+  return `<article class="dcard ${x.feat ? 'feat' : ''}" data-open="${i}" tabindex="0" aria-label="${esc(cityOf(it))}, ${eur0(total)}">
+    <div class="art">${art(it.outbound.to, countryEn(it), x.feat ? 260 : 200)}
       ${x.badge ? `<span class="badge">${esc(x.badge)}</span>` : ''}
       <button type="button" class="heart ${saved ? 'on' : ''}" data-act="save" data-i="${i}" aria-label="${saved ? 'Já está na lista' : 'Guardar na lista'}" aria-pressed="${saved}">${icon('heart')}</button>
-      <div class="place"><b>${esc(cityOf(it))}</b><span>${esc(countryOf(it))}${countryOf(it) ? ' · ' : ''}${n} noite${n > 1 ? 's' : ''} · ${esc(deO(it.outbound.from))}</span></div>
-      <div class="pill"><b>${eur0(total)}</b><small>${esc(perTxt)}</small></div>
     </div>
     <div class="cbody">
+      <div class="ctop"><div class="cname"><h3>${esc(cityOf(it))}</h3><span>${esc(countryOf(it))}${countryOf(it) ? ', ' : ''}${n} noite${n > 1 ? 's' : ''}, ${esc(deO(it.outbound.from))}</span></div>
+        <div class="price"><b>${eur0(total)}</b><small>${esc(perTxt)}</small></div></div>
       ${pack ? costBar(groupPrice(it, P), hotelPrice(it, P), it.hotel) : ''}
       <div class="facts">${facts}</div>
-      <div class="cfoot"><span class="muted">${esc(airlinesOf(it))} · ${fmtDur(totalDur(it))} de voo</span><button type="button" class="btn sm primary" data-open="${i}">Ver viagem</button></div>
+      <div class="cfoot">${esc(airlinesOf(it))}, ${fmtDur(totalDur(it))} de voo<span class="more">Ver viagem</span></div>
     </div></article>`;
 }
 
@@ -396,7 +395,7 @@ function saveIt(it, P, btn){
   drawList();
 }
 function drawList(){
-  $('listN').hidden = !list.length; $('listN').textContent = list.length || '';
+  document.querySelectorAll('[data-listn]').forEach(n => { n.hidden = !list.length; n.textContent = list.length || ''; });
   if (!list.length){ $('list').innerHTML = `<div class="empty"><b>A lista está vazia</b><span>Toca no coração dos destinos de que gostares. Depois partilha a lista com quem vai contigo.</span><button type="button" class="btn" data-goview="search">${icon('search')}Explorar destinos</button></div>`; return; }
   const live = new Set(ALL.map(it => it.bookingUrl));
   $('list').innerHTML = `<div><button type="button" class="btn" id="shareList">${icon('share')}Partilhar a lista</button></div>` + list.map((x, k) => `<div class="item"><div class="thumb">${art(x.code || x.city, x.countryEn || '', 200)}</div><div class="ib">
@@ -436,10 +435,10 @@ function dealChart(c){
 const dealTitle = c => `${ORIGIN[c.item.o]} → ${pt(c.item.city).replace(/,.*$/, '')}`;
 function renderDeal(){
   const box = $('dealBox'), folded = $('form').hidden;
-  if (!DATA || folded){ box.hidden = true; if (!folded) $('hero').hidden = false; return; }
+  if (!DATA || folded){ box.hidden = true; return; }
   const c = DATA.deal;
   const minis = (DATA.others || []).map((o, k) => `<button type="button" class="mini" data-deal="o${k}"><b>${eur0(o.item.price)}</b> ${esc(dealTitle(o))}<em>−${Math.round(o.off * 100)}%</em></button>`).join('');
-  box.hidden = false; $('hero').hidden = !!c;
+  box.hidden = false;
   if (!c){
     box.className = 'deal quiet';
     if (DATA.days < DATA.needDays){
@@ -469,7 +468,7 @@ function renderDeal(){
       <div class="dfoot"><span class="note">Estas ofertas costumam desaparecer em poucas horas.</span><span class="btns"><button type="button" class="btn sm primary" data-deal="best">Ver viagem</button></span></div>
     </div>`;
 }
-function paxChanged(){ if (DATA && DATA.deal && !$('dealBox').hidden) renderDeal(); }
+function paxChanged(){ if (DATA && DATA.deal && !$('dealBox').hidden) renderDeal(); if (DATA && ctx && ctx.home) showDefault(); }
 $('dealBox').addEventListener('click', e => {
   const s = e.target.closest('[data-dpax]');
   if (s){
@@ -485,6 +484,28 @@ $('dealBox').addEventListener('click', e => {
 });
 $('dealBox').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.dart') && DATA && DATA.deal){ e.preventDefault(); openTripFor(toIt(DATA.deal.item), group()); } });
 
+// ---------- página inicial: todos os destinos ----------
+function showDefault(){
+  ctx = {P: group(), o: opts(), mode: 'explore', budget: 0, label: 'Qualquer lugar', home: true};
+  const best = new Map();
+  for (const it of ALL){ const k = cityOf(it); if (!best.has(k) || groupPrice(best.get(k), ctx.P) > groupPrice(it, ctx.P)) best.set(k, it); }
+  current = [...best.values()]; sortBy = 'price'; renderResults();
+}
+
+// ---------- board: os mais baratos agora ----------
+let BOARD = [];
+function renderBoard(){
+  const seen = new Set(); BOARD = [];
+  for (const x of DATA.items.slice().sort((a, b) => (a.best ?? a.price) - (b.best ?? b.price))){
+    const c = pt(x.city).replace(/,.*$/, ''); if (seen.has(c)) continue; seen.add(c); BOARD.push(x); if (BOARD.length === 8) break;
+  }
+  const u = new Date(DATA.updated);
+  $('boardT').textContent = `Atualizado ${new Date().toDateString() === u.toDateString() ? 'hoje' : 'a ' + fmtDay(u)} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}`;
+  $('boardL').innerHTML = BOARD.map((x, k) => { const it = toIt(x), n = nightsOf(it);
+    return `<li><button type="button" data-board="${k}"><span class="bt"><b>${esc(cityOf(it))}</b><small>${esc(deO(x.o))}, ${esc(fmtDay(atNoon(x.out.dep)))} a ${esc(fmtDay(atNoon(x.in.dep)))}, ${n} noite${n > 1 ? 's' : ''}</small></span><span class="bp">${eur0(x.best ?? x.price)}</span></button></li>`; }).join('');
+}
+$('boardL').addEventListener('click', e => { const b = e.target.closest('[data-board]'); if (b && BOARD[+b.dataset.board]) openTripFor(toIt(BOARD[+b.dataset.board]), group()); });
+
 // ---------- global clicks ----------
 document.addEventListener('click', e => {
   const sortB = e.target.closest('[data-sort] button');
@@ -493,7 +514,7 @@ document.addEventListener('click', e => {
   if (b){ const it = current[+b.dataset.i]; if (it) saveIt(it, ctx.P, b); return; }
   const o = e.target.closest('[data-open]'); if (o && !openSheetEl) openTrip(+o.dataset.open);
 });
-document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.art[data-open]')){ e.preventDefault(); openTrip(+e.target.dataset.open); } });
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.dcard[data-open]')){ e.preventDefault(); openTrip(+e.target.dataset.open); } });
 
 // ---------- visitas (GoatCounter, sem cookies) ----------
 // Para ligar: escrever o código da conta em assets/config.js (VOA_CONFIG.goatcounter).
@@ -510,8 +531,8 @@ drawList();
 $('go').disabled = true; $('goTxt').textContent = 'A carregar os preços…';
 fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => {
   DATA = j; ALL = j.items.map(toIt);
-  $('go').disabled = false; $('goTxt').textContent = 'Procurar';
+  $('go').disabled = false; $('goTxt').textContent = 'Procurar voos';
   const u = new Date(j.updated);
-  $('foot').textContent = `Preços do Kiwi.com por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
-  renderDeal(); drawList();
+  $('foot').textContent = `Preços por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
+  renderDeal(); renderBoard(); showDefault(); drawList();
 }).catch(() => { $('goTxt').textContent = 'Não foi possível carregar os preços'; showErr('Não foi possível carregar os voos. Tenta recarregar a página daqui a pouco.'); });

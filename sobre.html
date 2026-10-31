@@ -5,41 +5,51 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sobre o Voa Daqui</title>
 <meta name="description" content="Quem somos, como funcionam os preços, links de afiliado e privacidade.">
-<meta name="theme-color" content="#ffbe2e">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffbe2e'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0a2540">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffc72c'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;800&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;700;800&display=swap">
 <style>
-:root{--bg:#f2f3f7;--panel:#fff;--line:#e2e5ee;--ink:#0e1525;--muted:#5b6680;--brand:#ffbe2e;--brand-ink:#1b1404}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0f1a;--panel:#141a29;--line:#253049;--ink:#eef1f8;--muted:#9aa6c2}}
-:root[data-theme="dark"]{--bg:#0b0f1a;--panel:#141a29;--line:#253049;--ink:#eef1f8;--muted:#9aa6c2}
+:root{--bg:#f4f6f9;--panel:#fff;--line:#e2e6ed;--ink:#0a2540;--muted:#5a6b85;--navy:#0a2540;--dim:#a9bad3;--sun:#ffc72c;--sun-ink:#1f1600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#08131f;--panel:#0f1f33;--line:#1f3550;--ink:#eaf0f8;--muted:#97a8c0;--navy:#050e19}}
+:root[data-theme="dark"]{--bg:#08131f;--panel:#0f1f33;--line:#1f3550;--ink:#eaf0f8;--muted:#97a8c0;--navy:#050e19}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Figtree,system-ui,sans-serif}
-main{max-width:720px;margin:0 auto;padding:24px 16px 56px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Schibsted Grotesk",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-underline-offset:3px}
-.back{display:inline-flex;gap:6px;align-items:center;font-weight:600;text-decoration:none;color:var(--muted)}
-h1{font:800 clamp(2rem,6vw,2.8rem)/1.05 "Bricolage Grotesque",sans-serif;margin:18px 0 8px;letter-spacing:-.02em}
-h1 span{background:var(--brand);color:var(--brand-ink);padding:0 .2em;border-radius:8px}
-.lead{color:var(--muted);font-size:1.08rem;margin:0 0 22px}
-section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin:0 0 14px}
-h2{font:800 1.2rem/1.2 "Bricolage Grotesque",sans-serif;margin:0 0 8px}
+a:focus-visible{outline:2px solid #1d5bd6;outline-offset:2px}
+.hdr{background:var(--navy);color:#fff}
+.hdr .in{max-width:760px;margin:0 auto;padding:0 16px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.15rem;letter-spacing:-.025em;text-decoration:none}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--sun)}
+.back{color:var(--dim);font-weight:600;font-size:.92rem;text-decoration:none}
+.back:hover{color:#fff}
+.band{background:var(--navy);color:#fff;padding:20px 0 40px}
+.band .in{max-width:760px;margin:0 auto;padding:0 16px}
+h1{font-weight:800;font-size:clamp(2rem,6vw,2.8rem);line-height:1.05;margin:0 0 10px;letter-spacing:-.035em}
+.lead{color:var(--dim);font-size:1.08rem;margin:0;max-width:56ch}
+main{max-width:760px;margin:-20px auto 0;padding:0 16px 56px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin:0 0 14px;scroll-margin-top:16px}
+h2{font-weight:700;font-size:1.2rem;line-height:1.25;margin:0 0 8px;letter-spacing:-.015em}
 p,li{margin:0 0 8px}
 ul{padding-left:20px;margin:0}
 small{color:var(--muted)}
 </style>
 </head>
 <body>
-<main>
-  <a class="back" href="./">← Voltar aos voos</a>
-  <h1>Sobre o <span>Voa Daqui</span></h1>
+<header class="hdr"><div class="in"><a class="logo" href="./"><i></i>Voa Daqui</a><a class="back" href="./">Voltar aos voos</a></div></header>
+<div class="band"><div class="in">
+  <h1>Como funciona o Voa Daqui</h1>
   <p class="lead">Um site português que mostra, de hora a hora, os voos de ida e volta mais baratos a partir de Lisboa, Porto e Faro, e a Pechincha do dia.</p>
+</div></div>
+<main>
 
   <section>
     <h2>Quem somos</h2>
     <p>O Voa Daqui é um projeto independente, feito em Portugal por uma pessoa que gosta de viajar barato. Não vendemos viagens: mostramos onde estão os preços mais baixos e levamos-te ao site onde podes reservar.</p>
   </section>
 
-  <section>
+  <section id="precos">
     <h2>Como funcionam os preços</h2>
     <ul>
       <li>De hora a hora, das 7h às 23h, procuramos no Kiwi.com os voos mais baratos para escapadinhas de 2 a 4 noites nas próximas 8 semanas.</li>
@@ -51,12 +61,12 @@ small{color:var(--muted)}
     </ul>
   </section>
 
-  <section>
+  <section id="comissoes">
     <h2>Como ganhamos dinheiro</h2>
     <p>Alguns botões são links de afiliado: se reservares através deles, o site parceiro (por exemplo, Kiwi.com, lastminute.com, eDreams ou Booking.com) pode pagar-nos uma pequena comissão. <b>Tu pagas exatamente o mesmo.</b> As comissões nunca mudam a ordem dos resultados: aparece primeiro o mais barato.</p>
   </section>
 
-  <section>
+  <section id="privacidade">
     <h2>Privacidade</h2>
     <ul>
       <li>Não pedimos conta, nome nem email, e não usamos cookies de publicidade.</li>
