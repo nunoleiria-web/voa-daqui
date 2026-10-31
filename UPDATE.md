@@ -1,6 +1,8 @@
-# Atualização diária
+# Atualização
 
-Todas as manhãs uma tarefa agendada do Claude faz isto:
+Uma tarefa agendada do Claude corre de hora a hora, das 7h às 23h (hora de Lisboa):
+- **às 7h, completa:** os passos abaixo, com `python3 build.py rows.txt` (lastminute em todos os voos e eDreams nos mais baratos);
+- **das 8h às 23h, leve:** os mesmos passos, mas sempre com `--leve` no fim (`python3 build.py rows.txt --leve` e `python3 build.py rows.txt cmp.txt --leve`). A lista "PARA COMPARAR" fica só com o lastminute nos 12 destinos mais baratos. Nessas horas, em `cmp.txt` atualiza (ou acrescenta) só as linhas desses 12 voos e mantém as restantes como estão.
 
 1. **Três pesquisas no Kiwi.com** (ferramenta `search-flight`), uma por origem (`LIS`, `OPO`, `FAO`), sempre com:
    - `flyTo`: `anywhere`

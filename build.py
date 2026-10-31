@@ -102,7 +102,7 @@ def parse_cmp(path, items):
     return n
 
 
-def to_compare(items, deal):
+def to_compare(items, deal, light=False):
     """Os voos a comparar: a pechincha e os destinos mais baratos (um por cidade)."""
     seen, order = set(), []
     for it in ([deal['item']] if deal else []) + sorted(items, key=lambda i: i['price']):
@@ -111,16 +111,18 @@ def to_compare(items, deal):
             continue
         seen.add(c)
         order.append(it)
-    lm = order[:LM_TOP]
-    ed = order[:ED_TOP + (1 if deal else 0)]
+    lm = order[:12 if light else LM_TOP]
+    ed = [] if light else order[:ED_TOP + (1 if deal else 0)]
     return lm, ed
 
 
 def main():
-    if len(sys.argv) not in (2, 3):
-        fail('uso: python3 build.py rows.txt [cmp.txt]')
-    items = parse(sys.argv[1])
-    ncmp = parse_cmp(sys.argv[2], items) if len(sys.argv) == 3 and Path(sys.argv[2]).exists() else 0
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    light = '--leve' in sys.argv   # atualização de hora a hora: só lastminute nos 12 mais baratos
+    if len(args) not in (1, 2):
+        fail('uso: python3 build.py rows.txt [cmp.txt] [--leve]')
+    items = parse(args[0])
+    ncmp = parse_cmp(args[1], items) if len(args) == 2 and Path(args[1]).exists() else 0
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=0)))
     try:
         import zoneinfo
@@ -174,7 +176,7 @@ def main():
     d = deal
     print(f'{len(items)} voos · histórico de {len(prev)} dias · {ncmp} preços de outros sites · ' +
           (f"pechincha: {d['item']['o']} → {d['item']['city']} {d['item']['price']} € (normal {d['base']} €, −{round(d['off']*100)}%)" if d else 'sem pechincha hoje'))
-    lm, ed = to_compare(items, deal)
+    lm, ed = to_compare(items, deal, light)
     print('\nPARA COMPARAR (origem destino ida volta):')
     for site, lst in (('lastminute.com', lm), ('eDreams', ed)):
         for it in lst:

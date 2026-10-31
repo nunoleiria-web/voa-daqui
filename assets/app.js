@@ -1,5 +1,5 @@
 // Voa Daqui · versão pública (GitHub Pages)
-// Lê data/data.json, gerado todas as manhãs a partir do Kiwi.com (ver UPDATE.md).
+// Lê data/data.json, gerado de hora a hora a partir do Kiwi.com (ver UPDATE.md).
 
 // ---------- theme ----------
 const THEME_KEY = 'voa-daqui-theme';
@@ -475,6 +475,6 @@ fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r
   DATA = j; ALL = j.items.map(toIt);
   $('go').disabled = false; $('goTxt').textContent = 'Procurar';
   const u = new Date(j.updated);
-  $('foot').textContent = `Preços do Kiwi.com por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados todas as manhãs. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
+  $('foot').textContent = `Preços do Kiwi.com por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
   renderDeal(); drawList();
 }).catch(() => { $('goTxt').textContent = 'Não foi possível carregar os preços'; showErr('Não foi possível carregar os voos. Tenta recarregar a página daqui a pouco.'); });
