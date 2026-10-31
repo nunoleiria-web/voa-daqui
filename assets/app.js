@@ -186,8 +186,8 @@ function matchDest(it){
   return list.includes(code) || list.includes(cc);
 }
 const summaryText = () => `${sel.from === 'both' ? 'De Lisboa, Porto e Faro' : sel.from === 'OPO' ? 'Do Porto' : 'De ' + ORIGIN[sel.from]} · ${paxText()}`;
-const collapse = (title, sub) => { $('form').hidden = true; $('band').hidden = true; $('dealBox').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
-$('edit').addEventListener('click', () => { $('form').hidden = false; $('band').hidden = false; $('summary').hidden = true; renderDeal(); window.scrollTo({top: 0, behavior: 'smooth'}); });
+const collapse = (title, sub) => { $('form').hidden = true; $('band').hidden = true; $('dealBox').hidden = true; $('pontes').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
+$('edit').addEventListener('click', () => { $('form').hidden = false; $('band').hidden = false; $('summary').hidden = true; renderDeal(); renderPontes(); if (!ctx || !ctx.home) showDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); });
 function showErr(msg){ $('out').innerHTML = `<div class="state err"><b>${esc(msg)}</b></div>`; }
 $('go').addEventListener('click', search);
 function search(){
@@ -237,7 +237,7 @@ function sortBar(){
 function renderResults(){
   const P = ctx.P, idx = sortIdx(current.map((_, i) => i)), u = new Date(DATA.updated);
   const min = Math.min(...current.map(it => priceFor(it, P)));
-  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.home ? `${current.length} destinos a partir de ${eur0(min)}` : ctx.mode === 'pack' ? `${current.length} viage${current.length === 1 ? 'm' : 'ns'} com voo + hotel desde ${eur0(min)}` : ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div></div>
+  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.ponte ? `${current.length} voos para ${ctx.ponte.title.startsWith('Ponte') ? 'a' : 'o'} ${esc(ctx.ponte.title.charAt(0).toLowerCase() + ctx.ponte.title.slice(1))}, desde ${eur0(min)}` : ctx.home ? `${current.length} destinos a partir de ${eur0(min)}` : ctx.mode === 'pack' ? `${current.length} viage${current.length === 1 ? 'm' : 'ns'} com voo + hotel desde ${eur0(min)}` : ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div></div>
     ${sortBar()}
     ${ctx.mode === 'pack' ? `<p class="note">Total para ${paxLabel(P)}: voo no site mais barato + alojamento com nota 7 ou mais no Booking, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}. O alojamento é estimado a partir do preço para 2 pessoas num quarto.</p>` : ''}
     ${P.total > 1 && ctx.mode !== 'pack' ? `<p class="note">Total estimado para ${paxLabel(P)}. Os lugares mais baratos costumam ser poucos: confirma se há para todos antes de pagar.</p>` : ''}
@@ -484,6 +484,38 @@ $('dealBox').addEventListener('click', e => {
 });
 $('dealBox').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.dart') && DATA && DATA.deal){ e.preventDefault(); openTripFor(toIt(DATA.deal.item), group()); } });
 
+// ---------- pontes e feriados ----------
+const WDL = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const ponteTitle = p => p.bridge ? `Ponte do ${p.name}` : p.name === 'Páscoa' ? 'Fim de semana da Páscoa' : `Fim de semana de ${p.name}`;
+const ponteDates = p => `${fmtShort(p.start + 'T12:00')} a ${fmtShort(p.end + 'T12:00')}`;
+function renderPontes(){
+  const box = $('pontes'), L = (DATA && DATA.pontes) || [];
+  if (!L.length || $('form').hidden){ box.hidden = true; return; }
+  box.hidden = false;
+  const now = L.filter(p => p.items && p.items.length), later = L.filter(p => !p.items || !p.items.length);
+  const card = p => { const seen = new Set(), top = p.items.filter(x => { const c = pt(x.city).replace(/,.*$/, ''); if (seen.has(c)) return false; seen.add(c); return true; }).slice(0, 3);
+    return `<article class="ponte"><header><h3>${esc(ponteTitle(p))}</h3><span>${esc(ponteDates(p))}, ${p.days} dias</span>${p.bridge ? `<em>Tira ${WDL[atNoon(p.bridge).getDay()]} ${atNoon(p.bridge).getDate()} de férias</em>` : '<em>Sem tirar férias</em>'}</header>
+      <ol>${top.map(x => `<li><button type="button" data-pt="${esc(p.id)}" data-pk="${esc(x.key)}"><span><b>${esc(pt(x.city).replace(/,.*$/, ''))}</b><small>${esc(deO(x.o))}</small></span><i>${eur0(x.price)}</i></button></li>`).join('')}</ol>
+      <button type="button" class="btn sm" data-pall="${esc(p.id)}">Ver os ${p.items.length} voos</button></article>`; };
+  box.innerHTML = `<div class="sechead"><h2>Pontes e feriados</h2><p>Fins de semana prolongados com voos procurados para as datas certas: ida na véspera ou no primeiro dia, volta no último.</p></div>
+    <div class="pgrid">${now.map(card).join('')}</div>
+    ${later.length ? `<div class="plater"><span>A seguir</span>${later.map(p => `<span class="pchip"><b>${esc(ponteTitle(p))}</b>${esc(ponteDates(p))}</span>`).join('')}<small>Os voos aparecem 8 semanas antes.</small></div>` : ''}`;
+}
+$('pontes').addEventListener('click', e => {
+  const b = e.target.closest('[data-pt]'), a = e.target.closest('[data-pall]');
+  const P = group();
+  if (b){ const p = DATA.pontes.find(x => x.id === b.dataset.pt), x = p && p.items.find(i => i.key === b.dataset.pk); if (x) openTripFor(toIt(x), P); return; }
+  if (!a) return;
+  const p = DATA.pontes.find(x => x.id === a.dataset.pall); if (!p) return;
+  const title = ponteTitle(p);
+  current = p.items.filter(x => sel.from === 'both' || x.o === sel.from).map(toIt);
+  ctx = {P, o: opts(), mode: 'explore', budget: 0, label: title, ponte: {id: p.id, title}};
+  sortBy = 'price';
+  collapse(title, `${ponteDates(p)}, ${p.days} dias · ${summaryText()}`);
+  if (!current.length){ $('out').innerHTML = '<div class="state"><b>Sem voos desta origem para esta ponte.</b><span>Escolhe "Todos" em "De onde".</span></div>'; return; }
+  renderResults();
+});
+
 // ---------- página inicial: todos os destinos ----------
 function showDefault(){
   ctx = {P: group(), o: opts(), mode: 'explore', budget: 0, label: 'Qualquer lugar', home: true};
@@ -534,5 +566,5 @@ fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r
   $('go').disabled = false; $('goTxt').textContent = 'Procurar voos';
   const u = new Date(j.updated);
   $('foot').textContent = `Preços por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
-  renderDeal(); renderBoard(); showDefault(); drawList();
+  renderDeal(); renderPontes(); renderBoard(); showDefault(); drawList();
 }).catch(() => { $('goTxt').textContent = 'Não foi possível carregar os preços'; showErr('Não foi possível carregar os voos. Tenta recarregar a página daqui a pouco.'); });

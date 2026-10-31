@@ -45,6 +45,13 @@ Uma tarefa agendada do Claude corre de hora a hora, das 7h às 23h (hora de Lisb
    - Nas horas leves, `hotels.txt` fica como está.
    - Correr de novo: `python3 build.py rows.txt cmp.txt` (ou com `--leve`).
 
+5b. **Pontes e feriados (só às 7h, completa).** O `build.py` mostra a lista "PARA PONTES" (até 3 pontes, cada linha `id|ida de|ida até|volta`). Para cada ponte, três pesquisas no Kiwi (`LIS`, `OPO`, `FAO`):
+   - `flyTo`: `anywhere`, `departureDate`: "ida de", `departureDateTo`: "ida até", `returnDate` e `returnDateTo`: "volta"
+   - `one_for_city`: true, `allow_self_transfer`: false, `dtime_from`: 6, `ret_dtime_from`: 6, `sort`: price, `currency`: EUR
+   - Escrever `pontes.txt` (substitui o ficheiro todo): os 8 mais baratos de cada origem, no formato do `rows.txt` com o id da ponte à frente:
+     `2026-12-08|OPO|SVQ|Seville|Spain|68|2026-12-05T20:30|2026-12-05T22:45|0|75|2026-12-08T06:55|2026-12-08T07:10|0|75|Ryanair|https://kiwi.com/u/su7f5r`
+   - Nas horas leves, `pontes.txt` fica como está (as pontes que já passaram desaparecem sozinhas do site).
+
 6. **Imagem de partilha:** `python3 og.py` (gera `og.png` com a Pechincha ou os 3 mais baratos). Se falhar, segue sem ela.
 
 7. **Commit e push** para `main`. O GitHub Pages publica sozinho em 1 a 2 minutos.

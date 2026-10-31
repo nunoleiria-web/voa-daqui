@@ -28,9 +28,10 @@ def fail(msg):
     sys.exit(f'ERRO: {msg}')
 
 
-def parse(path):
+def parse(path, lines=None, minimum=5):
     items, seen = [], set()
-    for n, line in enumerate(Path(path).read_text(encoding='utf-8').splitlines(), 1):
+    src = lines if lines is not None else Path(path).read_text(encoding='utf-8').splitlines()
+    for n, line in enumerate(src, 1):
         line = line.strip()
         if not line or line.startswith('#'):
             continue
@@ -61,9 +62,71 @@ def parse(path):
         items.append({'key': key, 'o': o, 'to': to, 'city': city, 'country': country, 'price': round(price),
                       'out': {'dep': od, 'arr': oa, 'stops': os_, 'min': om}, 'in': {'dep': idp, 'arr': ia, 'stops': is_, 'min': im},
                       'carrier': car, 'url': url})
-    if len(items) < 5:
+    if len(items) < minimum:
         fail(f'só {len(items)} voos válidos: algo correu mal nas pesquisas')
     return items
+
+
+# ---------- pontes e feriados ----------
+PONTES_MAX = 3   # quantas pontes pesquisar de cada vez (as mais próximas dentro das 8 semanas)
+
+
+def easter(y):
+    a, b, c = y % 19, y // 100, y % 100
+    d, e, f = b // 4, b % 4, (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    return dt.date(y, (h + l - 7 * m + 114) // 31, (h + l - 7 * m + 114) % 31 + 1)
+
+
+def holidays(y):
+    E, D, td = easter(y), dt.date, dt.timedelta
+    return [(D(y, 1, 1), 'Ano Novo'), (E - td(47), 'Carnaval'), (E - td(2), 'Páscoa'), (D(y, 4, 25), '25 de Abril'),
+            (D(y, 5, 1), '1 de Maio'), (E + td(60), 'Corpo de Deus'), (D(y, 6, 10), '10 de Junho'), (D(y, 8, 15), '15 de Agosto'),
+            (D(y, 10, 5), '5 de Outubro'), (D(y, 11, 1), '1 de Novembro'), (D(y, 12, 1), '1 de Dezembro'),
+            (D(y, 12, 8), '8 de Dezembro'), (D(y, 12, 25), 'Natal')]
+
+
+def pontes(today, n=8):
+    """Fins de semana prolongados: feriado à segunda ou sexta (3 dias), à terça ou quinta (4 dias com ponte)."""
+    td, out = dt.timedelta, []
+    for y in (today.year, today.year + 1):
+        for d, name in holidays(y):
+            w = d.weekday()
+            if name == 'Páscoa':
+                s, e, br = d, d + td(2), None          # Sexta-feira Santa a domingo
+            elif w == 0: s, e, br = d - td(2), d, None
+            elif w == 1: s, e, br = d - td(3), d, d - td(1)
+            elif w == 3: s, e, br = d, d + td(3), d + td(1)
+            elif w == 4: s, e, br = d, d + td(2), None
+            else:
+                continue
+            if s <= today:
+                continue
+            out.append({'id': d.isoformat(), 'name': name, 'hol': d.isoformat(), 'start': s.isoformat(), 'end': e.isoformat(),
+                        'bridge': br.isoformat() if br else None, 'days': (e - s).days + 1})
+    return sorted(out, key=lambda p: p['start'])[:n]
+
+
+def attach_pontes(today, path):
+    lst = pontes(today)
+    rows = {}
+    if path.exists():
+        for line in path.read_text(encoding='utf-8').splitlines():
+            line = line.strip()
+            if line and not line.startswith('#') and '|' in line:
+                pid, rest = line.split('|', 1)
+                rows.setdefault(pid, []).append(rest)
+    for p in lst:
+        its = parse(None, rows.get(p['id'], []), minimum=0)
+        for it in its:
+            it['key'] = f"{p['id']}|{it['key']}"
+            it['best'] = it['price']
+        p['items'] = sorted(its, key=lambda i: i['price'])
+    return lst
 
 
 LM_TOP, ED_TOP = 99, 4   # quantos destinos comparar no lastminute.com e no eDreams
@@ -202,10 +265,11 @@ def main():
     hist.append({'d': today, 'routes': {it['key']: it['price'] for it in items}, 'max': maxes})  # histórico sempre com o preço do Kiwi, para comparar igual com igual
     hist = sorted(hist, key=lambda h: h['d'])[-KEEP_DAYS:]
 
+    plist = attach_pontes(now.date(), ROOT / 'pontes.txt')
     deps = sorted(i['out']['dep'][:10] for i in items)
     out = {'updated': now.isoformat(timespec='minutes'), 'days': len(prev), 'needDays': MIN_DAYS,
            'range': [deps[0], deps[-1]], 'items': sorted(items, key=lambda i: i['price']),
-           'deal': deal, 'others': others, 'top': top}
+           'deal': deal, 'others': others, 'top': top, 'pontes': plist}
     DATA.parent.mkdir(exist_ok=True)
     DATA.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     HIST.write_text(json.dumps(hist, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
@@ -219,6 +283,13 @@ def main():
         for it in lst:
             print(f"  {site:14} {it['o']} {it['to']} {it['out']['dep'][:10]} {it['in']['dep'][:10]}")
     if not light:
+        horizon = now.date() + dt.timedelta(days=58)
+        todo = [p for p in plist if dt.date.fromisoformat(p['start']) - dt.timedelta(days=1) <= horizon][:PONTES_MAX]
+        print(f"\n{sum(1 for p in plist if p['items'])} pontes com voos")
+        print('PARA PONTES (Kiwi, flyTo anywhere, uma pesquisa por origem LIS/OPO/FAO; id|ida de|ida até|volta):')
+        for p in todo:
+            dep0 = dt.date.fromisoformat(p['start']) - dt.timedelta(days=1)
+            print(f"  {p['id']}|{dep0:%d/%m/%Y}|{dt.date.fromisoformat(p['start']):%d/%m/%Y}|{dt.date.fromisoformat(p['end']):%d/%m/%Y}  ({p['name']})")
         print('\nPARA ALOJAMENTO (Booking.com, 2 adultos, 1 quarto: cidade, país, entrada, saída):')
         for it in lm[:HOTEL_TOP]:
             print(f"  {it['o']}|{it['to']}|{it['out']['dep'][:10]}|{it['in']['dep'][:10]}  ->  {it['city']}, {it['country']}")

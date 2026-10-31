@@ -238,6 +238,32 @@ input[type=text],input[type=date],input[type=number],select{width:100%;font:inhe
 @media (min-width:900px){.dload{grid-template-columns:minmax(0,1fr) 300px;align-items:center;column-gap:28px}.dload b,.dload>span{grid-column:1}.dload .bar{grid-column:2;grid-row:1/3;max-width:none;margin:0}.dload .minis{grid-column:1/-1}}
 @media (max-width:420px){.dart .place b{font-size:1.7rem}.dart .was b{font-size:1.8rem}}
 
+/* pontes */
+.pontes{display:grid;gap:14px}
+.sechead h2{font-weight:800;font-size:clamp(1.3rem,3.2vw,1.6rem);letter-spacing:-.025em}
+.sechead p{margin:4px 0 0;color:var(--muted);font-size:.9rem;max-width:62ch}
+.pgrid{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:700px){.pgrid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
+@media (max-width:699px){.pgrid{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:86%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin-inline:calc(-1 * var(--gut));padding-inline:var(--gut);scroll-padding-inline:var(--gut)}.pgrid::-webkit-scrollbar{display:none}.ponte{scroll-snap-align:start}}
+.ponte{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;display:grid;gap:10px;align-content:start;border-top:4px solid var(--sun)}
+.ponte header{display:grid;gap:2px}
+.ponte h3{font-size:1.1rem;font-weight:700;letter-spacing:-.015em}
+.ponte header span{font-size:.86rem;color:var(--muted)}
+.ponte header em{font-style:normal;font-size:.78rem;font-weight:600;color:var(--blue);margin-top:4px}
+.ponte ol{list-style:none;margin:0;padding:0}
+.ponte li+li{border-top:1px solid var(--line)}
+.ponte li button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 2px;border:0;background:transparent;text-align:left;cursor:pointer}
+.ponte li button:hover b{color:var(--blue)}
+.ponte li b{display:block;font-weight:600;font-size:.95rem}
+.ponte li small{display:block;font-size:.78rem;color:var(--muted)}
+.ponte li i{font-style:normal;font-weight:800;font-size:1.15rem;letter-spacing:-.02em}
+.ponte>.btn{justify-self:start}
+.plater{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:.84rem;color:var(--muted)}
+.plater>span:first-child{font-weight:600;color:var(--ink);margin-right:4px}
+.pchip{display:inline-flex;gap:6px;align-items:baseline;border:1px solid var(--line2);border-radius:8px;padding:5px 10px;background:var(--panel)}
+.pchip b{font-weight:600;color:var(--ink)}
+.plater small{flex-basis:100%;font-size:.78rem}
+
 /* results */
 .reshead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px 20px;flex-wrap:wrap}
 .reshead h2{font-weight:800;font-size:clamp(1.4rem,3.6vw,1.9rem);letter-spacing:-.03em;text-wrap:balance;line-height:1.15}
@@ -529,6 +555,7 @@ input[type=text],input[type=date],input[type=number],select{width:100%;font:inhe
   <section class="view" id="viewSearch">
     <div class="summary" id="summary" hidden><svg class="ic"><use href="#i-search"/></svg><div><b id="sumT"></b><span id="sumS"></span></div><button type="button" class="btn sm" id="edit"><svg class="ic"><use href="#i-edit"/></svg>Alterar</button></div>
     <section class="deal quiet" id="dealBox" hidden aria-live="polite"></section>
+    <section class="pontes" id="pontes" hidden aria-label="Pontes e feriados"></section>
     <section id="out" aria-live="polite" class="view"></section>
   </section>
 
