@@ -1,0 +1,28 @@
+// Aeroportos e cidades para a pesquisa livre: [código, cidade, país]. Códigos de cidade (LON, PAR, MIL, ROM, NYC...) incluem todos os aeroportos.
+const AIRPORTS = [
+  ['LIS','Lisboa','Portugal'],['OPO','Porto','Portugal'],['FAO','Faro','Portugal'],['FNC','Funchal (Madeira)','Portugal'],['PDL','Ponta Delgada (Açores)','Portugal'],
+  ['TER','Terceira (Açores)','Portugal'],['PXO','Porto Santo','Portugal'],['HOR','Horta (Açores)','Portugal'],
+  ['MAD','Madrid','Espanha'],['BCN','Barcelona','Espanha'],['SVQ','Sevilha','Espanha'],['VLC','Valência','Espanha'],['AGP','Málaga','Espanha'],['BIO','Bilbau','Espanha'],
+  ['GRX','Granada','Espanha'],['ALC','Alicante','Espanha'],['PMI','Palma de Maiorca','Espanha'],['IBZ','Ibiza','Espanha'],['TFS','Tenerife Sul','Espanha'],['TFN','Tenerife Norte','Espanha'],
+  ['LPA','Gran Canária','Espanha'],['ACE','Lanzarote','Espanha'],['FUE','Fuerteventura','Espanha'],['SCQ','Santiago de Compostela','Espanha'],['VGO','Vigo','Espanha'],['MAH','Menorca','Espanha'],
+  ['LON','Londres (todos)','Reino Unido'],['MAN','Manchester','Reino Unido'],['EDI','Edimburgo','Reino Unido'],['BHX','Birmingham','Reino Unido'],['BRS','Bristol','Reino Unido'],
+  ['LPL','Liverpool','Reino Unido'],['GLA','Glasgow','Reino Unido'],['NCL','Newcastle','Reino Unido'],['DUB','Dublin','Irlanda'],['ORK','Cork','Irlanda'],['SNN','Shannon','Irlanda'],
+  ['PAR','Paris (todos)','França'],['MRS','Marselha','França'],['NCE','Nice','França'],['LYS','Lyon','França'],['TLS','Toulouse','França'],['BOD','Bordéus','França'],['NTE','Nantes','França'],
+  ['BSL','Basileia-Mulhouse','França/Suíça'],['GVA','Genebra','Suíça'],['ZRH','Zurique','Suíça'],
+  ['ROM','Roma (todos)','Itália'],['MIL','Milão (todos)','Itália'],['VCE','Veneza','Itália'],['NAP','Nápoles','Itália'],['FLR','Florença','Itália'],['BLQ','Bolonha','Itália'],['PSA','Pisa','Itália'],
+  ['TRN','Turim','Itália'],['CTA','Catânia','Itália'],['PMO','Palermo','Itália'],['BRI','Bari','Itália'],['CAG','Cagliari','Itália'],
+  ['BER','Berlim','Alemanha'],['MUC','Munique','Alemanha'],['FRA','Frankfurt','Alemanha'],['HAM','Hamburgo','Alemanha'],['DUS','Düsseldorf','Alemanha'],['CGN','Colónia','Alemanha'],['STR','Estugarda','Alemanha'],
+  ['AMS','Amesterdão','Países Baixos'],['EIN','Eindhoven','Países Baixos'],['RTM','Roterdão','Países Baixos'],['BRU','Bruxelas','Bélgica'],['CRL','Bruxelas Charleroi','Bélgica'],['LUX','Luxemburgo','Luxemburgo'],
+  ['VIE','Viena','Áustria'],['PRG','Praga','Chéquia'],['BUD','Budapeste','Hungria'],['WAW','Varsóvia','Polónia'],['KRK','Cracóvia','Polónia'],['CPH','Copenhaga','Dinamarca'],
+  ['STO','Estocolmo (todos)','Suécia'],['OSL','Oslo','Noruega'],['HEL','Helsínquia','Finlândia'],['KEF','Reiquiavique','Islândia'],['RIX','Riga','Letónia'],['TLL','Taline','Estónia'],
+  ['ATH','Atenas','Grécia'],['JTR','Santorini','Grécia'],['JMK','Míconos','Grécia'],['HER','Heraclião (Creta)','Grécia'],['MLA','Malta','Malta'],['LCA','Lárnaca','Chipre'],
+  ['DBV','Dubrovnik','Croácia'],['SPU','Split','Croácia'],['ZAG','Zagreb','Croácia'],['IST','Istambul','Turquia'],['AYT','Antália','Turquia'],
+  ['RAK','Marraquexe','Marrocos'],['TNG','Tânger','Marrocos'],['CMN','Casablanca','Marrocos'],['AGA','Agadir','Marrocos'],['FEZ','Fez','Marrocos'],['TUN','Tunes','Tunísia'],['CAI','Cairo','Egito'],
+  ['RAI','Praia','Cabo Verde'],['SID','Sal','Cabo Verde'],['BVC','Boa Vista','Cabo Verde'],['LAD','Luanda','Angola'],['MPM','Maputo','Moçambique'],['DSS','Dakar','Senegal'],
+  ['NYC','Nova Iorque (todos)','Estados Unidos'],['BOS','Boston','Estados Unidos'],['MIA','Miami','Estados Unidos'],['ORL','Orlando','Estados Unidos'],['SFO','São Francisco','Estados Unidos'],['LAX','Los Angeles','Estados Unidos'],
+  ['YTO','Toronto','Canadá'],['YMQ','Montreal','Canadá'],['CUN','Cancún','México'],['MEX','Cidade do México','México'],['PUJ','Punta Cana','Rep. Dominicana'],['HAV','Havana','Cuba'],
+  ['GRU','São Paulo','Brasil'],['GIG','Rio de Janeiro','Brasil'],['SSA','Salvador','Brasil'],['REC','Recife','Brasil'],['FOR','Fortaleza','Brasil'],['NAT','Natal','Brasil'],['BEL','Belém','Brasil'],
+  ['EZE','Buenos Aires','Argentina'],['BOG','Bogotá','Colômbia'],['LIM','Lima','Peru'],
+  ['DXB','Dubai','Emirados Árabes'],['DOH','Doha','Catar'],['BKK','Banguecoque','Tailândia'],['HKT','Phuket','Tailândia'],['DPS','Bali','Indonésia'],['SIN','Singapura','Singapura'],
+  ['TYO','Tóquio (todos)','Japão'],['DEL','Nova Deli','Índia'],['GOI','Goa','Índia'],['MLE','Maldivas','Maldivas'],['MRU','Maurícia','Maurícia'],['SEZ','Seychelles','Seychelles']
+];

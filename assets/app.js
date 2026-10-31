@@ -60,13 +60,16 @@ const pax = {adults:1, kids:[], rooms:1, roomsTouched:false};
 const MODEHELP = {
   explore: 'Descobre os destinos mais baratos, com os preços de hoje.',
   budget: 'Diz quanto queres gastar em voos para o grupo todo e vê para onde dá para ir.',
-  pack: 'Voo e alojamento juntos, com o total para o grupo e os quartos que escolheres.'
+  pack: 'Voo e alojamento juntos, com o total para o grupo e os quartos que escolheres.',
+  live: 'Qualquer destino, qualquer data: abre a pesquisa já feita no Kiwi.com e no lastminute.com, com os preços ao minuto.'
 };
 function setMode(m){
   mode = m;
   document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === m)));
   $('modehelp').textContent = MODEHELP[m];
   $('fBudget').hidden = m !== 'budget';
+  $('fFields').hidden = m === 'live'; $('fLive').hidden = m !== 'live'; $('filtersBtn').hidden = m === 'live';
+  if (!$('go').disabled) $('goTxt').textContent = m === 'live' ? 'Pesquisar voos' : 'Procurar voos';
 }
 document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 document.querySelectorAll('.chips[data-group]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setChip(g.dataset.group, b.dataset.v); }));
@@ -115,13 +118,14 @@ function group(){
 }
 const paxLabel = P => `${P.total} pessoa${P.total > 1 ? 's' : ''}`;
 const FORM_KEY = 'voa-daqui-site-form';
-const formSnapshot = () => ({mode, sel: Object.assign({}, sel), pax: {adults: pax.adults, kids: pax.kids.slice(), rooms: pax.rooms, roomsTouched: pax.roomsTouched}, city: $('city').value, budget: $('budget').value, opts: opts()});
+const formSnapshot = () => ({live: {from: $('lFrom').value, to: $('lTo').value, one: $('lOne').checked}, mode, sel: Object.assign({}, sel), pax: {adults: pax.adults, kids: pax.kids.slice(), rooms: pax.rooms, roomsTouched: pax.roomsTouched}, city: $('city').value, budget: $('budget').value, opts: opts()});
 function applyForm(s){
   if (!s) return;
   if (s.pax){ pax.adults = s.pax.adults || 1; pax.kids = (s.pax.kids || []).slice(); pax.rooms = s.pax.rooms || 1; pax.roomsTouched = !!s.pax.roomsTouched; }
   for (const g of ['to', 'when', 'trip', 'from']) if (s.sel && s.sel[g] != null && document.querySelector(`.chips[data-group="${g}"] [data-v="${s.sel[g]}"]`)) setChip(g, s.sel[g]);
   $('city').value = s.city || ''; $('budget').value = s.budget || '';
   if (s.opts){ for (const k of ['direct', 'noDawn', 'weekends']) $(k).checked = !!s.opts[k]; $('maxDur').value = String(s.opts.maxDur || 0); }
+  if (s.live){ $('lFrom').value = s.live.from || 'Lisboa (LIS)'; $('lTo').value = s.live.to || ''; $('lOne').checked = !!s.live.one; $('lD2').disabled = !!s.live.one; }
   setMode(MODEHELP[s.mode] ? s.mode : 'explore');
 }
 const rememberForm = () => store.set(FORM_KEY, formSnapshot());
@@ -192,6 +196,7 @@ function showErr(msg){ $('out').innerHTML = `<div class="state err"><b>${esc(msg
 $('go').addEventListener('click', search);
 function search(){
   if (!DATA) return;
+  if (mode === 'live') return liveSearch();
   const P = group(), o = opts(), range = dateRange();
   if (sel.to === 'city' && !$('city').value.trim()) return showErr('Escreve a cidade de destino.');
   if (!range) return showErr('Escolhe as duas datas.');
@@ -309,7 +314,7 @@ function links(it, P){
   const yymmdd = s => s.slice(2).replace(/-/g, ''), city = cityOf(it), cityEn = lastSeg(it).toCity.replace(/,.*$/, '');
   const kids = P.ages.length ? '&' + P.ages.map(x => `age=${x}`).join('&') : '';
   return {
-    lm: lmc && lmc.mac ? (() => { const rid = lmc.mac.split('SCH')[0], j = Math.round(lmc.p * 1000);
+    lm: P.total > 1 || !(lmc && lmc.mac) ? aff('lm', lmSearch(o, d, a, b, P)) : lmc && lmc.mac ? (() => { const rid = lmc.mac.split('SCH')[0], j = Math.round(lmc.p * 1000);
       return `https://www.lastminute.ie/msr/route/searching.do?departureAirport=${o}&arrivalAirport=${d}&outboundDay=${b2(a)}&outboundMonthYear=${my(a)}&returnDay=${b2(b)}&returnMonthYear=${my(b)}&adults=1&childs=0&infants=0&COBRANDED=LMNEN_LLMPROJECTEN&currency=EUR&url=search3.do&roundtrip=true&fareType=&requestId=${rid}&mac=${lmc.mac}&acntb=flight&utm_term=${o}${d}&utm_campaign=results&utm_medium=meta_search&utm_source=LMNEN_LLMPROJECTEN&bf_subsource=-----WS0S02RS01&j=${j}&jC=${j}_EUR&cp=0`; })() : 'https://www.lastminute.ie/',
     ed: `https://www.edreams.pt/travel/?deeplink=/results/ret=${b};infants=${P.infants};children=${P.children};adults=${P.adults};type=R;class=TOURIST;from.iata=${o};to.iata=${d};dep=${a};collectionmethod=16`,
     sky: `https://www.skyscanner.pt/transporte/voos/${o.toLowerCase()}/${(CITY_CODE[d] || d).toLowerCase()}/${yymmdd(a)}/${yymmdd(b)}/?adultsv2=${P.adults}${P.ages.length ? '&childrenv2=' + P.ages.join('|') : ''}`,
@@ -484,6 +489,63 @@ $('dealBox').addEventListener('click', e => {
 });
 $('dealBox').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.dart') && DATA && DATA.deal){ e.preventDefault(); openTripFor(toIt(DATA.deal.item), group()); } });
 
+// ---------- pesquisa livre (Kiwi.com e lastminute.com) ----------
+const CFG = window.VOA_CONFIG || {};
+// links de afiliado: ficam ativos quando houver códigos em assets/config.js
+function aff(site, url){
+  if (site === 'kiwi' && CFG.kiwiAffil) return url + '&affilid=' + encodeURIComponent(CFG.kiwiAffil);
+  if (site === 'lm' && CFG.awinId && CFG.awinLastminute) return `https://www.awin1.com/cread.php?awinmid=${CFG.awinLastminute}&awinaffid=${CFG.awinId}&ued=${encodeURIComponent(url)}`;
+  return url;
+}
+const ymd = s => s.replace(/-/g, ''), dmy = s => s.split('-').reverse().join('-');
+function lmSearch(o, d, a, b, P){
+  return `https://www.lastminute.ie/s/flights/search/v2/results?itinerary.path[0].departure=${o}&itinerary.path[0].arrival=${d}&itinerary.path[0].date=${ymd(a)}` +
+    (b ? `&itinerary.path[1].departure=${d}&itinerary.path[1].arrival=${o}&itinerary.path[1].date=${ymd(b)}&itinerary.type=ROUND_TRIP` : '&itinerary.type=ONE_WAY') +
+    `&passengers.adults=${P.adults}${P.ages.length ? '&passengers.childrenAges=' + P.ages.join(',') : ''}&flexDateDays=0&currency=EUR&businessProfile=LASTMINUTEIE`;
+}
+const kiwiSearch = (o, d, a, b, P) => `https://www.kiwi.com/deep?origin=${o}&destination=${d}&departure=${dmy(a)}${b ? '&return=' + dmy(b) : ''}&adults=${P.adults}&children=${P.children}&infants=${P.infants}&currency=EUR&lang=pt`;
+const AP = new Map(AIRPORTS.map(x => [x[0], x]));
+$('apList').innerHTML = AIRPORTS.map(([c, n, k]) => `<option value="${esc(n)} (${c})">${esc(k)}</option>`).join('');
+function apCode(v){
+  v = (v || '').trim(); let m = /\(([A-Za-z]{3})\)\s*$/.exec(v) || /^([A-Za-z]{3})$/.exec(v);
+  if (m) return m[1].toUpperCase();
+  const q = norm(v); if (q.length < 3) return null;
+  const hit = AIRPORTS.find(x => norm(x[1]) === q) || AIRPORTS.find(x => norm(x[1]).startsWith(q));
+  return hit ? hit[0] : null;
+}
+const apName = c => AP.has(c) ? AP.get(c)[1].replace(/ \(.*\)$/, '') : c;
+(() => { const t = new Date(); $('lD1').min = $('lD2').min = isoLocal(t); $('lD1').value = isoLocal(addDays(t, 14)); $('lD2').value = isoLocal(addDays(t, 17)); })();
+$('lOne').addEventListener('change', () => { $('lD2').disabled = $('lOne').checked; });
+$('lSwap').addEventListener('click', () => { const a = $('lFrom').value; $('lFrom').value = $('lTo').value; $('lTo').value = a; });
+function liveSearch(){
+  const P = group(), o = apCode($('lFrom').value), d = apCode($('lTo').value), a = $('lD1').value, one = $('lOne').checked, b = one ? '' : $('lD2').value;
+  if (!o) return showErr('Escolhe a cidade de partida na lista.');
+  if (!d) return showErr('Escolhe o destino na lista (ex.: Sevilha, Londres, Nova Iorque).');
+  if (o === d) return showErr('A partida e o destino são iguais.');
+  if (!a) return showErr('Escolhe a data de ida.');
+  if (!one && (!b || b < a)) return showErr('A volta tem de ser depois da ida.');
+  rememberForm();
+  const kiwi = aff('kiwi', kiwiSearch(o, d, a, b, P)), lm = aff('lm', lmSearch(o, d, a, b, P));
+  const sky = `https://www.skyscanner.pt/transporte/voos/${o.toLowerCase()}/${d.toLowerCase()}/${a.slice(2).replace(/-/g, '')}/${b ? b.slice(2).replace(/-/g, '') + '/' : ''}?adultsv2=${P.adults}${P.ages.length ? '&childrenv2=' + P.ages.join('|') : ''}`;
+  const gfl = `https://www.google.com/travel/flights?hl=pt-PT&curr=EUR&q=${encodeURIComponent(`Voos de ${o} para ${d} em ${a}${b ? ' regresso ' + b : ' só ida'}`)}`;
+  const when = `${fmtShort(a + 'T12:00')}${b ? ' a ' + fmtShort(b + 'T12:00') : ', só ida'}`;
+  // o que já vimos hoje para esta rota (montra e pontes)
+  const same = x => x.o === o && (x.to === d || CITY_CODE[x.to] === d);
+  const seen = DATA.items.filter(same).concat(...(DATA.pontes || []).map(p => p.items.filter(same))).sort((x, y) => (x.best ?? x.price) - (y.best ?? y.price))[0];
+  ctx = {P, o: opts(), mode: 'live', budget: 0, label: ''};
+  current = seen ? [toIt(seen)] : [];
+  collapse(`${apName(o)} → ${apName(d)}`, `${when} · ${paxText()}`);
+  $('out').innerHTML = `<section class="livebox">
+      <div class="lhead"><h2>${esc(apName(o))} → ${esc(apName(d))}</h2><p>${esc(when)}, ${esc(paxLabel(P))}. Escolhe onde ver os preços ao minuto:</p></div>
+      <div class="lbtns">
+        <a class="lbtn" href="${esc(kiwi)}" target="_blank" rel="noopener"><b>Ver no Kiwi.com</b><span>Junta companhias diferentes na ida e na volta e encontra combinações low-cost.</span><i>Abrir pesquisa</i></a>
+        <a class="lbtn" href="${esc(lm)}" target="_blank" rel="noopener"><b>Ver no lastminute.com</b><span>Preço final com as taxas incluídas. Tem também voo + hotel.</span><i>Abrir pesquisa</i></a>
+      </div>
+      <p class="note">Abre noutro separador, já com os aeroportos, as datas e ${esc(paxLabel(P))}. Também podes comparar no <a href="${esc(sky)}" target="_blank" rel="noopener">Skyscanner</a> ou no <a href="${esc(gfl)}" target="_blank" rel="noopener">Google Voos</a>.</p>
+      ${seen ? `<div class="lseen"><span>Hoje vimos ${esc(cityOf(current[0]))} ${esc(deO(o))} desde <b>${eur0(seen.best ?? seen.price)}</b> por pessoa, ${esc(fmtShort(current[0].outbound.departureTime))} a ${esc(fmtShort(current[0].inbound.departureTime))}.</span><button type="button" class="btn sm" data-open="0">Ver essa viagem</button></div>` : ''}
+    </section>`;
+}
+
 // ---------- pontes e feriados ----------
 const WDL = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 const ponteTitle = p => p.bridge ? `Ponte do ${p.name}` : p.name === 'Páscoa' ? 'Fim de semana da Páscoa' : `Fim de semana de ${p.name}`;
@@ -563,7 +625,7 @@ drawList();
 $('go').disabled = true; $('goTxt').textContent = 'A carregar os preços…';
 fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => {
   DATA = j; ALL = j.items.map(toIt);
-  $('go').disabled = false; $('goTxt').textContent = 'Procurar voos';
+  $('go').disabled = false; $('goTxt').textContent = mode === 'live' ? 'Pesquisar voos' : 'Procurar voos';
   const u = new Date(j.updated);
   $('foot').textContent = `Preços por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
   renderDeal(); renderPontes(); renderBoard(); showDefault(); drawList();

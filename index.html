@@ -87,7 +87,7 @@ input:focus-visible,button:focus-visible,a:focus-visible,select:focus-visible,[t
 @media (min-width:900px){.nav{display:flex}.themebtn{margin-left:0}}
 
 /* ---------- band: title, search, board ---------- */
-.band{background:var(--navy);color:var(--on-navy);position:relative;overflow:hidden}
+.band{background:var(--navy);color:var(--on-navy);position:relative;overflow:hidden;overflow:clip}
 .band::before{content:"";position:absolute;inset:auto -10% -40% auto;width:720px;height:720px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,199,44,.16),rgba(255,199,44,0));pointer-events:none}
 .band .wrap{position:relative;display:grid;gap:20px;padding-top:22px;padding-bottom:26px}
 .hero h1{font-size:clamp(1.85rem,6.4vw,3.4rem);line-height:1.02;letter-spacing:-.035em;font-weight:800;max-width:16ch;text-wrap:balance}
@@ -123,7 +123,7 @@ input:focus-visible,button:focus-visible,a:focus-visible,select:focus-visible,[t
 .chips button[aria-pressed="true"]{background:var(--blue-soft);color:var(--blue);border-color:var(--blue);font-weight:600}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row>*{flex:1 1 130px;min-width:0}
-input[type=text],input[type=date],input[type=number],select{width:100%;font:inherit;font-size:.96rem;padding:10px 12px;border-radius:var(--r-sm);border:1px solid var(--line2);background:var(--panel);color:var(--ink)}
+input[type=text],input[type=date],input[type=number],select{width:100%;min-width:0;font:inherit;font-size:.96rem;padding:10px 12px;border-radius:var(--r-sm);border:1px solid var(--line2);background:var(--panel);color:var(--ink)}
 .budgetin{display:flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:var(--r-sm);padding:2px 14px}
 .budgetin input{border:0;background:transparent;font-size:1.5rem;font-weight:700;padding:8px 0}
 .budgetin input:focus-visible{outline:0}
@@ -237,6 +237,28 @@ input[type=text],input[type=date],input[type=number],select{width:100%;font:inhe
 .dload .bar i{display:block;height:100%;background:var(--sun)}
 @media (min-width:900px){.dload{grid-template-columns:minmax(0,1fr) 300px;align-items:center;column-gap:28px}.dload b,.dload>span{grid-column:1}.dload .bar{grid-column:2;grid-row:1/3;max-width:none;margin:0}.dload .minis{grid-column:1/-1}}
 @media (max-width:420px){.dart .place b{font-size:1.7rem}.dart .was b{font-size:1.8rem}}
+
+/* pesquisa livre */
+.fields.live{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
+.fields.live input[type=date]{padding-inline:8px}
+@media (max-width:699px){#form:has(#filtersBtn[hidden]) #paxBtn{grid-column:1/-1}}
+@media (min-width:700px){#form:has(#filtersBtn[hidden]) .actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.fields.live .lbl{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:22px}
+.swap{border:1px solid var(--line2);background:var(--panel);border-radius:6px;padding:0 7px;font-size:.9rem;cursor:pointer;color:var(--muted);line-height:20px}
+.one{display:inline-flex;align-items:center;gap:5px;font-weight:500;cursor:pointer}
+.one input{margin:0}
+input:disabled{opacity:.45}
+.livebox{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;display:grid;gap:16px}
+.lhead h2{font-weight:800;font-size:clamp(1.4rem,3.6vw,1.9rem);letter-spacing:-.03em}
+.lhead p{margin:4px 0 0;color:var(--muted)}
+.lbtns{display:grid;gap:12px}
+@media (min-width:700px){.lbtns{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lbtn{display:grid;gap:4px;padding:16px 18px;border-radius:var(--r);border:1px solid var(--line2);text-decoration:none;color:var(--ink);background:var(--panel);transition:border-color .15s,box-shadow .15s}
+.lbtn:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+.lbtn b{font-size:1.1rem;font-weight:700}
+.lbtn span{font-size:.86rem;color:var(--muted)}
+.lbtn i{font-style:normal;font-weight:700;color:var(--sun-ink);background:var(--sun);border-radius:8px;padding:8px 12px;justify-self:start;margin-top:6px;font-size:.88rem}
+.lseen{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:12px 14px;border-radius:var(--r-sm);background:var(--go-soft);font-size:.9rem}
 
 /* pontes */
 .pontes{display:grid;gap:14px}
@@ -472,6 +494,7 @@ input[type=text],input[type=date],input[type=number],select{width:100%;font:inhe
         <button type="button" role="tab" data-mode="explore" aria-selected="true"><svg class="ic"><use href="#i-compass"/></svg>Explorar</button>
         <button type="button" role="tab" data-mode="budget" aria-selected="false"><svg class="ic"><use href="#i-wallet"/></svg>Orçamento</button>
         <button type="button" role="tab" data-mode="pack" aria-selected="false"><svg class="ic"><use href="#i-bed"/></svg>Voo + hotel</button>
+        <button type="button" role="tab" data-mode="live" aria-selected="false"><svg class="ic"><use href="#i-search"/></svg>Qualquer voo</button>
       </div>
       <p class="modehelp" id="modehelp"></p>
 
@@ -479,7 +502,15 @@ input[type=text],input[type=date],input[type=number],select{width:100%;font:inhe
         <div class="budgetin"><input type="number" id="budget" min="20" inputmode="numeric" placeholder="150" aria-label="Orçamento em euros"><span>€</span></div>
       </div>
 
-      <div class="fields">
+      <div class="fields live" id="fLive" hidden>
+        <label class="field"><span class="lbl">De</span><input type="text" id="lFrom" list="apList" value="Lisboa (LIS)" autocomplete="off" spellcheck="false"></label>
+        <label class="field"><span class="lbl">Para <button type="button" class="swap" id="lSwap" aria-label="Trocar partida e destino">⇄</button></span><input type="text" id="lTo" list="apList" placeholder="Cidade ou aeroporto" autocomplete="off" spellcheck="false"></label>
+        <label class="field"><span class="lbl">Ida</span><input type="date" id="lD1"></label>
+        <div class="field"><span class="lbl">Volta <label class="one"><input type="checkbox" id="lOne"> Só ida</label></span><input type="date" id="lD2" aria-label="Data de volta"></div>
+      </div>
+      <datalist id="apList"></datalist>
+
+      <div class="fields" id="fFields">
         <div class="field"><span class="lbl">De onde</span>
           <div class="chips" data-group="from">
             <button type="button" data-v="both" aria-pressed="true">Todos</button>
@@ -603,6 +634,7 @@ input[type=text],input[type=date],input[type=number],select{width:100%;font:inhe
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="assets/config.js"></script>
+<script src="assets/airports.js"></script>
 <script src="assets/core.js"></script>
 <script src="assets/clubs.js"></script>
 <script src="assets/app.js"></script>
