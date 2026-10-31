@@ -60,7 +60,8 @@ const sel = {to:'anywhere', when:'all', trip:'all', from:'both'};
 const pax = {adults:1, kids:[], rooms:1, roomsTouched:false};
 const MODEHELP = {
   explore: 'Descobre os destinos mais baratos, com os preços de hoje.',
-  budget: 'Diz quanto queres gastar em voos para o grupo todo e vê para onde dá para ir.'
+  budget: 'Diz quanto queres gastar em voos para o grupo todo e vê para onde dá para ir.',
+  pack: 'Voo e alojamento juntos, com o total para o grupo e os quartos que escolheres.'
 };
 function setMode(m){
   mode = m;
@@ -122,7 +123,7 @@ function applyForm(s){
   for (const g of ['to', 'when', 'trip', 'from']) if (s.sel && s.sel[g] != null && document.querySelector(`.chips[data-group="${g}"] [data-v="${s.sel[g]}"]`)) setChip(g, s.sel[g]);
   $('city').value = s.city || ''; $('budget').value = s.budget || '';
   if (s.opts){ for (const k of ['direct', 'noDawn', 'weekends']) $(k).checked = !!s.opts[k]; $('maxDur').value = String(s.opts.maxDur || 0); }
-  setMode(s.mode === 'budget' ? 'budget' : 'explore');
+  setMode(MODEHELP[s.mode] ? s.mode : 'explore');
 }
 const rememberForm = () => store.set(FORM_KEY, formSnapshot());
 applyForm(store.get(FORM_KEY, null));
@@ -135,7 +136,7 @@ const CITY_CODE = {STN:'LON', LTN:'LON', LGW:'LON', LHR:'LON', SEN:'LON', BVA:'P
 function toIt(x){
   const cars = x.carrier.split(' + '), seg = (from, to, car, fromCity, toCity, fromC, toC) => ({from, to, carrier: car, carrierName: car, fromCity, toCity, fromCountry: fromC, toCountry: toC});
   const oc = {LIS:'Lisbon', OPO:'Porto', FAO:'Faro'}[x.o];
-  return {price: x.price, bookingUrl: x.url, baggage: {personalItem: 1, cabinBag: 0, checkedBag: 0}, key: x.key, cmp: x.cmp || {},
+  return {price: x.price, bookingUrl: x.url, baggage: {personalItem: 1, cabinBag: 0, checkedBag: 0}, key: x.key, cmp: x.cmp || {}, hotel: x.hotel || null,
     outbound: {from: x.o, to: x.to, departureTime: x.out.dep + ':00', arrivalTime: x.out.arr + ':00', durationSeconds: (x.out.min || 0) * 60, stops: x.out.stops, route: [x.o, x.to], segments: [seg(x.o, x.to, cars[0], oc, x.city, 'Portugal', x.country)]},
     inbound: {from: x.to, to: x.o, departureTime: x.in.dep + ':00', arrivalTime: x.in.arr + ':00', durationSeconds: (x.in.min || 0) * 60, stops: x.in.stops, route: [x.to, x.o], segments: [seg(x.to, x.o, cars[1] || cars[0], x.city, oc, x.country, 'Portugal')]}};
 }
@@ -149,7 +150,18 @@ const nightsOf = it => it.inbound ? Math.max(1, Math.round((atNoon(it.inbound.de
 const totalDur = it => (it.outbound.durationSeconds || 0) + (it.inbound ? it.inbound.durationSeconds || 0 : 0);
 const isDirect = it => it.outbound.stops === 0 && (!it.inbound || it.inbound.stops === 0);
 const airlinesOf = it => [...new Set([...it.outbound.segments, ...it.inbound.segments].map(s => s.carrierName))].join(', ');
-const groupPrice = (it, P) => it.price * Math.max(1, P.payers);
+// preço mais baixo entre os sites (Kiwi, lastminute com link exato, eDreams)
+function bestOf(it, P){
+  const c = it.cmp || {}, L = links(it, P || group());
+  const r = [{p: it.price, site: 'kiwi', name: 'Kiwi.com', url: it.bookingUrl}];
+  if (c.lm && c.lm.mac) r.push({p: c.lm.p, site: 'lm', name: 'lastminute', url: L.lm});
+  if (c.ed) r.push({p: c.ed.p, site: 'ed', name: 'eDreams', url: L.ed});
+  return r.reduce((a, b) => b.p < a.p - 0.005 ? b : a);
+}
+const groupPrice = (it, P) => bestOf(it, P).p * Math.max(1, P.payers);
+const hotelPrice = (it, P) => it.hotel ? it.hotel.p2 * Math.max(1, P.rooms) : 0;
+const packPrice = (it, P) => groupPrice(it, P) + hotelPrice(it, P);
+const priceFor = (it, P) => ctx && ctx.mode === 'pack' ? packPrice(it, P) : groupPrice(it, P);
 
 // ---------- search ----------
 let current = [], ctx = null, sortBy = 'price';
@@ -187,6 +199,7 @@ function search(){
   const budget = mode === 'budget' ? +$('budget').value : 0;
   if (mode === 'budget' && !(budget > 0)) return showErr('Escreve quanto queres gastar em voos.');
   rememberForm();
+  ctx = {P, o, mode, budget, label: ''};
   const lo = isoLocal(range[0]), hi = isoLocal(range[1]);
   let list = ALL.filter(it => {
     const dep = isoDay(it.outbound.departureTime), n = nightsOf(it);
@@ -199,21 +212,23 @@ function search(){
     if (o.weekends){ const a = new Date(it.outbound.departureTime).getDay(), b = new Date(it.inbound.departureTime).getDay(); if (![4, 5].includes(a) || ![0, 1].includes(b)) return false; }
     if (o.maxDur && Math.max(it.outbound.durationSeconds, it.inbound.durationSeconds) > o.maxDur * 3600) return false;
     if (budget && groupPrice(it, P) > budget) return false;
+    if (mode === 'pack' && !it.hotel) return false;
     return true;
   });
-  if (sel.from === 'both'){ const best = new Map(); for (const it of list){ const k = cityOf(it); if (!best.has(k) || best.get(k).price > it.price) best.set(k, it); } list = [...best.values()]; }
+  if (sel.from === 'both'){ const best = new Map(); for (const it of list){ const k = cityOf(it); if (!best.has(k) || priceFor(best.get(k), P) > priceFor(it, P)) best.set(k, it); } list = [...best.values()]; }
   current = list;
   const destName = sel.to === 'city' ? $('city').value.trim() : DEST_NAME[sel.to];
-  ctx = {P, o, mode, budget, label: destName};
-  collapse(mode === 'budget' ? `${eur0(budget)} · ${destName}` : `${destName} · ${fmtDay(range[0])} a ${fmtDay(range[1])}`, summaryText());
+  ctx.label = destName;
+  collapse(mode === 'pack' ? `Voo + hotel · ${destName}` : mode === 'budget' ? `${eur0(budget)} · ${destName}` : `${destName} · ${fmtDay(range[0])} a ${fmtDay(range[1])}`, summaryText());
   if (!current.length){
-    $('out').innerHTML = `<div class="state"><b>${budget ? `Nenhum voo cabe em ${eur0(budget)} para ${paxLabel(P)}.` : 'Sem voos com estes filtros.'}</b><span>Hoje o site tem os ${ALL.length} voos mais baratos de Lisboa, Porto e Faro. Experimenta "Qualquer lugar", "Próximas 8 semanas" ou tira algum filtro.</span></div>`;
+    $('out').innerHTML = `<div class="state"><b>${mode === 'pack' ? 'Ainda não há voo + hotel com estes filtros.' : budget ? `Nenhum voo cabe em ${eur0(budget)} para ${paxLabel(P)}.` : 'Sem voos com estes filtros.'}</b><span>Hoje o site tem os ${ALL.length} voos mais baratos de Lisboa, Porto e Faro. ${mode === 'pack' ? `Os preços de alojamento são vistos de manhã para os ${ALL.filter(x => x.hotel).length} destinos mais baratos. Experimenta "Qualquer lugar" ou o modo Explorar.` : 'Experimenta "Qualquer lugar", "Próximas 8 semanas" ou tira algum filtro.'}</span></div>`;
     return;
   }
   renderResults();
 }
 function sortIdx(idx){
-  const by = {price: (a, b) => current[a].price - current[b].price, dur: (a, b) => totalDur(current[a]) - totalDur(current[b]) || current[a].price - current[b].price, date: (a, b) => current[a].outbound.departureTime.localeCompare(current[b].outbound.departureTime)}[sortBy];
+  const pf = i => priceFor(current[i], ctx.P);
+  const by = {price: (a, b) => pf(a) - pf(b), dur: (a, b) => totalDur(current[a]) - totalDur(current[b]) || pf(a) - pf(b), date: (a, b) => current[a].outbound.departureTime.localeCompare(current[b].outbound.departureTime)}[sortBy];
   return idx.slice().sort(by);
 }
 function sortBar(){
@@ -222,20 +237,22 @@ function sortBar(){
 }
 function renderResults(){
   const P = ctx.P, idx = sortIdx(current.map((_, i) => i)), u = new Date(DATA.updated);
-  const min = Math.min(...current.map(it => groupPrice(it, P)));
-  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div></div>
+  const min = Math.min(...current.map(it => priceFor(it, P)));
+  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.mode === 'pack' ? `${current.length} viage${current.length === 1 ? 'm' : 'ns'} com voo + hotel desde ${eur0(min)}` : ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div></div>
     ${sortBar()}
-    ${P.total > 1 ? `<p class="note">Total estimado para ${paxLabel(P)}. Os lugares mais baratos costumam ser poucos: confirma no Kiwi se há para todos.</p>` : ''}
+    ${ctx.mode === 'pack' ? `<p class="note">Total para ${paxLabel(P)}: voo no site mais barato + alojamento com nota 7 ou mais no Booking, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}. O alojamento é estimado a partir do preço para 2 pessoas num quarto.</p>` : ''}
+    ${P.total > 1 && ctx.mode !== 'pack' ? `<p class="note">Total estimado para ${paxLabel(P)}. Os lugares mais baratos costumam ser poucos: confirma se há para todos antes de pagar.</p>` : ''}
     <div class="grid">${idx.map((i, k) => card(i, k === 0 ? {feat: true, badge: sortBy === 'price' ? 'O mais barato' : sortBy === 'dur' ? 'O mais rápido' : 'O mais cedo'} : {})).join('')}</div>`;
 }
 function cheaperElsewhere(it){
-  const c = it.cmp || {}, best = [['lastminute', c.lm], ['eDreams', c.ed]].filter(([, v]) => v && v.p < it.price - 0.5).sort((a, b) => a[1].p - b[1].p)[0];
-  return best ? `<span class="fact ok">${esc(best[0])}: ${eur0(best[1].p)}</span>` : '';
+  const b = bestOf(it, ctx && ctx.P);
+  return b.site !== 'kiwi' && b.p < it.price - 0.5 ? `<span class="fact ok">Mais barato no ${esc(b.name)}</span>` : '';
 }
 function card(i, x = {}){
   const it = current[i], P = ctx.P, n = nightsOf(it);
-  const total = groupPrice(it, P);
-  const perTxt = P.payers > 1 ? `${eur0(it.price)} por pessoa` : 'ida e volta';
+  const b = bestOf(it, P), pack = ctx.mode === 'pack' && it.hotel;
+  const total = pack ? packPrice(it, P) : groupPrice(it, P);
+  const perTxt = pack ? `voo + hotel · ${paxLabel(P)}` : P.payers > 1 ? `${eur0(b.p)} por pessoa` : 'ida e volta';
   const facts = [`<span class="fact">${esc(fmtShort(it.outbound.departureTime))} → ${esc(fmtShort(it.inbound.departureTime))}</span>`,
     isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', '<span class="fact dim">Só mochila</span>', cheaperElsewhere(it)].join('');
   const saved = listUrls().has(it.bookingUrl);
@@ -247,10 +264,14 @@ function card(i, x = {}){
       <div class="pill"><b>${eur0(total)}</b><small>${esc(perTxt)}</small></div>
     </div>
     <div class="cbody">
+      ${pack ? costBar(groupPrice(it, P), hotelPrice(it, P), it.hotel) : ''}
       <div class="facts">${facts}</div>
       <div class="cfoot"><span class="muted">${esc(airlinesOf(it))} · ${fmtDur(totalDur(it))} de voo</span><button type="button" class="btn sm primary" data-open="${i}">Ver viagem</button></div>
     </div></article>`;
 }
+
+const costBar = (f, h, H) => `<div class="costbar" aria-hidden="true"><i style="width:${Math.round(f / (f + h) * 100)}%"></i><i style="width:${Math.round(h / (f + h) * 100)}%"></i></div>
+      <div class="costleg"><span>Voos <b>${eur0(f)}</b></span><span>${esc(H.name)} <b>${eur0(h)}</b> · ${String(H.rating).replace('.', ',')}</span></div>`;
 
 // ---------- trip sheet ----------
 let SH = null, sheetTab = 'flight';
@@ -265,17 +286,17 @@ function legBlock(k, leg){
 const openTrip = i => current[i] && openTripFor(current[i], ctx.P);
 function openTripFor(it, P){
   SH = {it, P}; sheetTab = 'flight';
-  const n = nightsOf(it), total = groupPrice(it, P), saved = listUrls().has(it.bookingUrl);
+  const n = nightsOf(it), b = bestOf(it, P), total = groupPrice(it, P), saved = listUrls().has(it.bookingUrl);
   $('dBox').innerHTML = `<div class="sheethead">${art(it.outbound.to, countryEn(it), 230).replace('<svg ', '<svg class="bg" ')}<div class="shade"></div><span class="grab"></span>
       <button type="button" class="xbtn" data-close aria-label="Fechar">${icon('x')}</button>
       <div class="place"><div><h3 id="dTitle">${esc(cityOf(it))}</h3><span>${esc(countryOf(it))}${countryOf(it) ? ' · ' : ''}${n} noite${n > 1 ? 's' : ''} · ${esc(deO(it.outbound.from))} · ${esc(paxLabel(P))}</span></div>
-      <div class="pill"><b>${eur0(total)}</b><small>voo ida e volta${P.payers > 1 ? ` · ${eur0(it.price)}/pessoa` : ''}</small></div></div></div>
+      <div class="pill"><b>${eur0(total)}</b><small>voo ida e volta${P.payers > 1 ? ` · ${eur0(b.p)}/pessoa` : ''}${it.hotel ? ` · com hotel ${eur0(total + hotelPrice(it, P))}` : ''}</small></div></div></div>
     <div class="tabs" role="tablist"><button type="button" role="tab" data-tab="flight" aria-selected="true">${icon('plane')}Voo</button><button type="button" role="tab" data-tab="stay" aria-selected="false">${icon('bed')}Estadia</button><button type="button" role="tab" data-tab="todo" aria-selected="false">${icon('ticket')}O que fazer</button></div>
     <div class="sheetbody" id="dBody"></div>
     <div class="actionbar">
       <button type="button" class="btn ${saved ? 'on' : ''}" data-sact="save" aria-label="Guardar na lista" aria-pressed="${saved}">${icon('heart')}</button>
       <button type="button" class="btn" data-sact="share" aria-label="Partilhar">${icon('share')}</button>
-      <a class="btn primary" href="${esc(it.bookingUrl)}" target="_blank" rel="noopener">${icon('plane')}Reservar voo · ${eur0(it.price)}${P.payers > 1 ? '/pessoa' : ''}</a>
+      <a class="btn primary" href="${esc(b.url)}" target="_blank" rel="noopener" data-out="${b.site}">${icon('plane')}Reservar${b.site !== 'kiwi' ? ' no ' + esc(b.name) : ' voo'} · ${eur0(b.p)}</a>
     </div>`;
   openSheet('detail');
   renderTab();
@@ -315,6 +336,11 @@ function compareHtml(it, P, L){
   return `<span class="note">Mesmas datas, por pessoa, só com mochila.${seen} Os outros sites abrem já com os aeroportos, as datas e ${paxLabel(P)}.</span>${priced}${links}
     <span class="note">O eDreams e o lastminute.com mostram o preço sem malas; acrescenta-as lá. Confirma horários e malas antes de pagar.</span>`;
 }
+function hotelHtml(it, P){
+  const H = it.hotel, n = nightsOf(it), f = groupPrice(it, P), h = hotelPrice(it, P);
+  return `<div class="hrow"><div><b>${esc(H.name)}<i class="src bk">Booking</i></b><span>${esc(H.type)} · nota ${String(H.rating).replace('.', ',')} · ${eur0(H.p2)} por ${n} noite${n > 1 ? 's' : ''}, 2 pessoas num quarto</span></div><div class="hp"><a class="btn sm primary" href="${esc(H.url)}" target="_blank" rel="noopener" data-out="booking">Ver</a></div></div>
+    <div class="sec" style="gap:8px"><b>Voo + hotel para ${paxLabel(P)}: ${eur0(f + h)}</b>${costBar(f, h, H)}<span class="costnote">${P.rooms} quarto${P.rooms > 1 ? 's' : ''} × ${eur0(H.p2)}. O mais barato com nota 7 ou mais, visto de manhã. ${P.total > P.rooms * 2 ? 'Com mais de 2 pessoas por quarto o preço pode subir.' : 'Confirma no Booking antes de reservar.'}</span></div>`;
+}
 function renderTab(){
   const body = $('dBody'); if (!SH || !body) return;
   const it = SH.it, P = SH.P, L = links(it, P), n = nightsOf(it);
@@ -326,6 +352,7 @@ function renderTab(){
   } else if (sheetTab === 'stay'){
     body.innerHTML = `<div class="sec"><h4>${icon('bed')}Alojamento</h4>
         <span class="note">${n} noite${n > 1 ? 's' : ''} · ${fmtShort(it.outbound.departureTime)} a ${fmtShort(it.inbound.departureTime)} · ${paxLabel(P)}, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}. Os sites abrem já com estas datas.</span>
+        ${it.hotel ? hotelHtml(it, P) : ''}
         ${linkRow(`Hotéis em ${cityOf(it)}`, 'Hotéis, apartamentos e guest houses, com cancelamento grátis em muitos', L.booking, 'Ver no Booking', ['bk', 'Booking'])}
         ${linkRow(`Casas em ${cityOf(it)}`, 'Apartamentos inteiros, bons para grupos e famílias', L.airbnb, 'Ver no Airbnb', ['lm', 'Airbnb'])}</div>`;
   } else {
@@ -343,7 +370,7 @@ $('dBox').addEventListener('click', e => {
   shareTrip(SH.it, SH.P);
 });
 async function shareTrip(it, P){
-  const n = nightsOf(it), text = `${cityOf(it)} ${deO(it.outbound.from)}, ${fmtShort(it.outbound.departureTime)} a ${fmtShort(it.inbound.departureTime)} (${n} noites): ${eur0(it.price)} por pessoa, ida e volta.`;
+  const n = nightsOf(it), text = `${cityOf(it)} ${deO(it.outbound.from)}, ${fmtShort(it.outbound.departureTime)} a ${fmtShort(it.inbound.departureTime)} (${n} noites): desde ${eur0(bestOf(it, P).p)} por pessoa, ida e volta. Visto no Voa Daqui: ${location.origin + location.pathname}`;
   try {
     if (navigator.share){ await navigator.share({title: 'Voa Daqui', text, url: it.bookingUrl}); return; }
     await navigator.clipboard.writeText(`${text}\n${it.bookingUrl}`); toast('Copiado. Cola numa mensagem para partilhar.');
@@ -358,7 +385,7 @@ function saveIt(it, P, btn){
   if (listUrls().has(it.bookingUrl)){ list = list.filter(x => x.url !== it.bookingUrl); toast(`${cityOf(it)} saiu da lista.`); }
   else {
     const n = nightsOf(it);
-    list.unshift({city: cityOf(it), country: countryOf(it), countryEn: countryEn(it), code: it.outbound.to, from: it.outbound.from, price: it.price, pax: P.total, payers: P.payers,
+    list.unshift({city: cityOf(it), country: countryOf(it), countryEn: countryEn(it), code: it.outbound.to, from: it.outbound.from, price: bestOf(it, P).p, pax: P.total, payers: P.payers,
       dates: `${fmtShort(it.outbound.departureTime)} → ${fmtShort(it.inbound.departureTime)} · ${n} noite${n > 1 ? 's' : ''}`, url: it.bookingUrl, addedAt: new Date().toISOString()});
     toast(`${cityOf(it)} guardado na lista.`);
   }
@@ -429,7 +456,7 @@ function renderDeal(){
   box.innerHTML = `<div class="dart" data-deal="best" role="button" tabindex="0" aria-label="Ver pechincha ${esc(dealTitle(c))} a ${eur0(c.item.price)}">${art(it.outbound.to, countryEn(it), 220).replace('<svg ', '<svg class="bg" ')}<div class="shade"></div>
       <span class="tag">${icon('ticket')}Pechincha do dia</span><span class="off">−${Math.round(c.off * 100)}%</span>
       <div class="place"><div><b>${esc(cityOf(it))}</b><span>${esc(deO(c.item.o))} · ${esc(fmtShort(it.outbound.departureTime))} → ${esc(fmtShort(it.inbound.departureTime))} · ${n} noite${n > 1 ? 's' : ''}</span></div>
-      <div class="was"><s>normal ${c.base} €</s><b>${eur0(c.item.price)}</b><small>ida e volta, por pessoa</small></div></div></div>
+      <div class="was"><s>normal ${c.base} €</s><b>${eur0(c.item.price)}</b><small>${bestOf(it, P).p < c.item.price - 0.5 ? `${eur0(bestOf(it, P).p)} no ${esc(bestOf(it, P).name)}` : 'ida e volta, por pessoa'}</small></div></div></div>
     <div class="dbody">
       <div class="why">${c.lb ? 'Pelo menos ' : ''}<b>${Math.round(c.off * 100)}% abaixo</b> do preço habitual para ${esc(cityOf(it))} ${esc(deO(c.item.o))}, comparando com os últimos ${c.hist.length} dias. Voo ${isDirect(it) ? 'direto' : 'com escala'}, ${esc(airlinesOf(it))}.</div>
       ${dealChart(c)}
@@ -437,7 +464,7 @@ function renderDeal(){
         <span class="stp"><button type="button" data-dpax="a-" aria-label="Menos um adulto"${pax.adults <= 1 ? ' disabled' : ''}>−</button><b>${pax.adults}</b> adulto${pax.adults > 1 ? 's' : ''}<button type="button" data-dpax="a+" aria-label="Mais um adulto"${pax.adults >= 9 ? ' disabled' : ''}>+</button></span>
         <span class="stp"><button type="button" data-dpax="k-" aria-label="Menos uma criança"${!pax.kids.length ? ' disabled' : ''}>−</button><b>${pax.kids.length}</b> criança${pax.kids.length === 1 ? '' : 's'}<button type="button" data-dpax="k+" aria-label="Mais uma criança"${pax.kids.length >= 8 ? ' disabled' : ''}>+</button></span>
       </div>
-      ${P.total > 1 ? `<div class="gres warn">Para ${paxLabel(P)}: cerca de <b>${eur0(groupPrice(it, P))} no total</b>. Os lugares a ${eur0(c.item.price)} costumam ser poucos: confirma no Kiwi se há para todos.</div>` : ''}
+      ${P.total > 1 ? `<div class="gres warn">Para ${paxLabel(P)}: cerca de <b>${eur0(groupPrice(it, P))} no total</b>${bestOf(it, P).site !== 'kiwi' ? ` no ${esc(bestOf(it, P).name)}` : ''}${it.hotel ? `, ou ${eur0(packPrice(it, P))} com hotel` : ''}. Os lugares mais baratos costumam ser poucos: confirma se há para todos.</div>` : ''}
       ${minis ? `<div><div class="lbl" style="margin-bottom:6px">Outras descidas fortes · por pessoa</div><div class="minis">${minis}</div></div>` : ''}
       <div class="dfoot"><span class="note">Estas ofertas costumam desaparecer em poucas horas.</span><span class="btns"><button type="button" class="btn sm primary" data-deal="best">Ver viagem</button></span></div>
     </div>`;
@@ -467,6 +494,16 @@ document.addEventListener('click', e => {
   const o = e.target.closest('[data-open]'); if (o && !openSheetEl) openTrip(+o.dataset.open);
 });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.art[data-open]')){ e.preventDefault(); openTrip(+e.target.dataset.open); } });
+
+// ---------- visitas (GoatCounter, sem cookies) ----------
+// Para ligar: escrever o código da conta em assets/config.js (VOA_CONFIG.goatcounter).
+const GC = (window.VOA_CONFIG || {}).goatcounter;
+if (GC){ const sc = document.createElement('script'); sc.async = true; sc.dataset.goatcounter = `https://${GC}.goatcounter.com/count`; sc.src = '//gc.zgo.at/count.js'; document.head.appendChild(sc); }
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="http"]'); if (!a || !window.goatcounter || !window.goatcounter.count) return;
+  let host = ''; try { host = new URL(a.href).hostname.replace(/^www\./, ''); } catch (x){}
+  if (host && host !== location.hostname) window.goatcounter.count({path: 'saida/' + host, title: 'Saída para ' + host, event: true});
+}, true);
 
 // ---------- start ----------
 drawList();

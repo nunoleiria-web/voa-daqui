@@ -36,7 +36,18 @@ Uma tarefa agendada do Claude corre de hora a hora, das 7h às 23h (hora de Lisb
    - Se uma pesquisa falhar, salta essa linha.
    - Correr de novo: `python3 build.py rows.txt cmp.txt`
 
-5. **Commit e push** para `main`. O GitHub Pages publica sozinho em 1 a 2 minutos.
+5. **Alojamento (só às 7h, completa).** O `build.py` termina com a lista "PARA ALOJAMENTO" (8 destinos). Para cada linha:
+   - ferramenta `accommodations_search` do Booking.com com a cidade e o país, `checkin` = data de ida, `checkout` = data de volta, 2 adultos, 1 quarto, moeda EUR;
+   - escolher o resultado **mais barato com nota 7 ou mais** (os resultados não vêm ordenados);
+   - escrever `hotels.txt` (substitui o ficheiro todo), uma linha por destino: `ORIGEM|DESTINO|data ida|data volta|nome|preço total da estadia|nota|tipo|url`
+     Ex.: `OPO|TNG|2026-11-28|2026-11-30|Nezha Hotel|57|7.1|Hotel|https://www.booking.com/hotel/ma/work-amp-stay.html?aid=8132308&checkin=2026-11-28&checkout=2026-11-30&no_rooms=1&group_adults=2&selected_currency=EUR`
+   - o url é o do resultado, copiado exatamente (tem o `aid`); se faltarem `checkin`/`checkout`/`group_adults=2`, acrescentá-los.
+   - Nas horas leves, `hotels.txt` fica como está.
+   - Correr de novo: `python3 build.py rows.txt cmp.txt` (ou com `--leve`).
+
+6. **Imagem de partilha:** `python3 og.py` (gera `og.png` com a Pechincha ou os 3 mais baratos). Se falhar, segue sem ela.
+
+7. **Commit e push** para `main`. O GitHub Pages publica sozinho em 1 a 2 minutos.
 
 ## Como funciona a Pechincha do dia
 

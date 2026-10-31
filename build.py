@@ -67,6 +67,7 @@ def parse(path):
 
 
 LM_TOP, ED_TOP = 99, 4   # quantos destinos comparar no lastminute.com e no eDreams
+HOTEL_TOP = 8            # quantos destinos com alojamento do Booking (atualização das 7h)
 
 
 def parse_cmp(path, items):
@@ -102,6 +103,38 @@ def parse_cmp(path, items):
     return n
 
 
+def parse_hotels(path, items):
+    """hotels.txt: alojamento mais barato no Booking.com para 2 adultos / 1 quarto, nas datas do voo.
+    ORIGEM|DESTINO|data ida|data volta|nome|preço total|nota|tipo|url"""
+    by = {(i['o'], i['to'], i['out']['dep'][:10], i['in']['dep'][:10]): i for i in items}
+    n = 0
+    for k, line in enumerate(Path(path).read_text(encoding='utf-8').splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        f = [x.strip() for x in line.split('|')]
+        if len(f) != 9:
+            fail(f'hotels.txt linha {k}: esperava 9 campos: {line}')
+        it = by.get(tuple(f[:4]))
+        if not it:
+            continue
+        try:
+            price = round(float(f[5]), 2)
+            rating = float(f[6]) if f[6] not in ('', '-') else None
+        except ValueError:
+            fail(f'hotels.txt linha {k}: preço ou nota inválidos')
+        if not f[8].startswith('https://'):
+            fail(f'hotels.txt linha {k}: link inválido')
+        it['hotel'] = {'name': f[4], 'p2': price, 'rating': rating, 'type': f[7], 'url': f[8]}
+        n += 1
+    return n
+
+
+def best_price(it):
+    ps = [it['price']] + [c['p'] for c in it.get('cmp', {}).values()]
+    return min(ps)
+
+
 def to_compare(items, deal, light=False):
     """Os voos a comparar: a pechincha e os destinos mais baratos (um por cidade)."""
     seen, order = set(), []
@@ -123,6 +156,9 @@ def main():
         fail('uso: python3 build.py rows.txt [cmp.txt] [--leve]')
     items = parse(args[0])
     ncmp = parse_cmp(args[1], items) if len(args) == 2 and Path(args[1]).exists() else 0
+    nhot = parse_hotels(ROOT / 'hotels.txt', items) if (ROOT / 'hotels.txt').exists() else 0
+    for it in items:
+        it['best'] = best_price(it)
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=0)))
     try:
         import zoneinfo
@@ -163,7 +199,7 @@ def main():
     maxes = {}
     for it in items:
         maxes[it['o']] = max(maxes.get(it['o'], 0), it['price'])
-    hist.append({'d': today, 'routes': {it['key']: it['price'] for it in items}, 'max': maxes})
+    hist.append({'d': today, 'routes': {it['key']: it['price'] for it in items}, 'max': maxes})  # histórico sempre com o preço do Kiwi, para comparar igual com igual
     hist = sorted(hist, key=lambda h: h['d'])[-KEEP_DAYS:]
 
     deps = sorted(i['out']['dep'][:10] for i in items)
@@ -177,10 +213,15 @@ def main():
     print(f'{len(items)} voos · histórico de {len(prev)} dias · {ncmp} preços de outros sites · ' +
           (f"pechincha: {d['item']['o']} → {d['item']['city']} {d['item']['price']} € (normal {d['base']} €, −{round(d['off']*100)}%)" if d else 'sem pechincha hoje'))
     lm, ed = to_compare(items, deal, light)
+    print(f'{nhot} destinos com alojamento')
     print('\nPARA COMPARAR (origem destino ida volta):')
     for site, lst in (('lastminute.com', lm), ('eDreams', ed)):
         for it in lst:
             print(f"  {site:14} {it['o']} {it['to']} {it['out']['dep'][:10]} {it['in']['dep'][:10]}")
+    if not light:
+        print('\nPARA ALOJAMENTO (Booking.com, 2 adultos, 1 quarto: cidade, país, entrada, saída):')
+        for it in lm[:HOTEL_TOP]:
+            print(f"  {it['o']}|{it['to']}|{it['out']['dep'][:10]}|{it['in']['dep'][:10]}  ->  {it['city']}, {it['country']}")
 
 
 if __name__ == '__main__':
