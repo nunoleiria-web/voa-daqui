@@ -1,5 +1,9 @@
-# Booking.com, 2 adultos / 1 quarto, nota >= 7, mesmas datas do voo. 2026-10-31 ~01:45
-OPO|SVQ|2026-11-24|2026-11-28|RentalSevilla Vírgenes|198.36|7.0|Apartamento|https://www.booking.com/hotel/es/rentalsevilla-virgenes.html?aid=8132308&checkin=2026-11-24&checkout=2026-11-28&no_rooms=1&group_adults=2&selected_currency=EUR
-OPO|FAO|2026-12-11|2026-12-14|BellaVita City Faro|144|8.5|Casa de hóspedes|https://www.booking.com/hotel/pt/bella-vita.html?aid=8132308&checkin=2026-12-11&checkout=2026-12-14&no_rooms=1&group_adults=2&selected_currency=EUR
-OPO|TNG|2026-11-28|2026-11-30|Nezha Hotel|57|7.1|Hotel|https://www.booking.com/hotel/ma/work-amp-stay.html?aid=8132308&checkin=2026-11-28&checkout=2026-11-30&no_rooms=1&group_adults=2&selected_currency=EUR
-FAO|OPO|2026-11-21|2026-11-24|Cosme Apartments by Olala Homes|144.23|7.6|Apartamento|https://www.booking.com/hotel/pt/cosme-guesthouse.html?aid=8132308&checkin=2026-11-21&checkout=2026-11-24&no_rooms=1&group_adults=2&selected_currency=EUR
+# Booking.com, 2 adultos / 1 quarto, nota >= 7, mesmas datas do voo. 2026-10-31 ~07:30
+LIS|SVQ|2026-11-16|2026-11-20|Placentines|297.9|7.9|Apartamento|https://www.booking.com/hotel/es/placentines.html?aid=8132308&checkin=2026-11-16&checkout=2026-11-20&no_rooms=1&group_adults=2&selected_currency=EUR
+OPO|FAO|2026-12-11|2026-12-14|Pináculo Guesthouse|147.75|8.2|Casa de hóspedes|https://www.booking.com/hotel/pt/pinaculo-guesthouse.html?aid=8132308&checkin=2026-12-11&checkout=2026-12-14&no_rooms=1&group_adults=2&selected_currency=EUR
+OPO|TNG|2026-11-28|2026-11-30|Dar Yasmine|132.45|8.4|Alojamento de acomodação e pequeno-almoço|https://www.booking.com/hotel/ma/dar-yasmine-tanger.html?aid=8132308&checkin=2026-11-28&checkout=2026-11-30&no_rooms=1&group_adults=2&selected_currency=EUR
+LIS|AGP|2026-11-19|2026-11-21|Travelodge Málaga Airport|209.77|8.1|Hotel|https://www.booking.com/hotel/es/travelodge-malaga-airport.html?aid=8132308&checkin=2026-11-19&checkout=2026-11-21&no_rooms=1&group_adults=2&selected_currency=EUR
+OPO|TLS|2026-11-26|2026-11-28|ibis budget Toulouse Centre Gare|131.98|7.7|Hotel|https://www.booking.com/hotel/fr/ibis-budget-toulouse-centre.html?aid=8132308&checkin=2026-11-26&checkout=2026-11-28&no_rooms=1&group_adults=2&selected_currency=EUR
+OPO|MRS|2026-11-19|2026-11-23|LaFrenchCasa Noailles|237.23|7.6|Apartamento|https://www.booking.com/hotel/fr/la-french-casa-noailles.html?aid=8132308&checkin=2026-11-19&checkout=2026-11-23&no_rooms=1&group_adults=2&selected_currency=EUR
+FAO|OPO|2026-12-13|2026-12-15|Casa Maya Boutique Guesthouse|84.22|8.7|Casa de hóspedes|https://www.booking.com/hotel/pt/casa-maya-porto.html?aid=8132308&checkin=2026-12-13&checkout=2026-12-15&no_rooms=1&group_adults=2&selected_currency=EUR
+OPO|MAD|2026-11-26|2026-11-28|Marina Rooms|265|8.3|Casa de hóspedes|https://www.booking.com/hotel/es/marinarooms.html?aid=8132308&checkin=2026-11-26&checkout=2026-11-28&no_rooms=1&group_adults=2&selected_currency=EUR
