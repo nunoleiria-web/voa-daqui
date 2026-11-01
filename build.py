@@ -168,8 +168,11 @@ def parse_cmp(path, items):
 
 def parse_hotels(path, items):
     """hotels.txt: alojamento mais barato no Booking.com para 2 adultos / 1 quarto, nas datas do voo.
-    ORIGEM|DESTINO|data ida|data volta|nome|preço total|nota|tipo|url"""
-    by = {(i['o'], i['to'], i['out']['dep'][:10], i['in']['dep'][:10]): i for i in items}
+    ORIGEM|DESTINO|data ida|data volta|nome|preço total|nota|tipo|url
+    Fica associado à rota (origem e destino). Se ao longo do dia o voo mais barato mudar de datas,
+    o site estima pelo preço por noite e abre o Booking já com as novas datas."""
+    import re
+    by = {(i['o'], i['to']): i for i in items}
     n = 0
     for k, line in enumerate(Path(path).read_text(encoding='utf-8').splitlines(), 1):
         line = line.strip()
@@ -178,17 +181,20 @@ def parse_hotels(path, items):
         f = [x.strip() for x in line.split('|')]
         if len(f) != 9:
             fail(f'hotels.txt linha {k}: esperava 9 campos: {line}')
-        it = by.get(tuple(f[:4]))
+        it = by.get((f[0], f[1]))
         if not it:
             continue
         try:
             price = round(float(f[5]), 2)
             rating = float(f[6]) if f[6] not in ('', '-') else None
+            nights = max(1, (dt.date.fromisoformat(f[3]) - dt.date.fromisoformat(f[2])).days)
         except ValueError:
-            fail(f'hotels.txt linha {k}: preço ou nota inválidos')
+            fail(f'hotels.txt linha {k}: preço, nota ou datas inválidos')
         if not f[8].startswith('https://'):
             fail(f'hotels.txt linha {k}: link inválido')
-        it['hotel'] = {'name': f[4], 'p2': price, 'rating': rating, 'type': f[7], 'url': f[8]}
+        url = re.sub(r'([?&])aid=\d+&?', r'\1', f[8]).rstrip('&?')   # sem código de afiliado de terceiros
+        it['hotel'] = {'name': f[4], 'p2': price, 'pn': round(price / nights, 2), 'ci': f[2], 'co': f[3],
+                       'rating': rating, 'type': f[7], 'url': url}
         n += 1
     return n
 

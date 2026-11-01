@@ -20,20 +20,45 @@ const icon = (n, cls = 'ic') => `<svg class="${cls}"><use href="#i-${n}"/></svg>
 let toastT = 0;
 function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; t.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => { t.style.opacity = 0; setTimeout(() => t.hidden = true, 260); }, 2400); }
 let openSheetEl = null, lastFocus = null;
-function openSheet(id){
+// O botão "voltar" do telemóvel fecha a janela aberta (e volta dos resultados para o início) em vez de sair do site.
+const pushNav = (state, url) => { try { history.pushState(state, '', url || location.pathname + location.search); } catch (e){} };
+function openSheet(id, url){
   const s = $(id); lastFocus = document.activeElement; s.hidden = false; openSheetEl = s; document.body.classList.add('locked');
+  pushNav({sheet: id}, url);
   const f = s.querySelector('button, a, input, select'); if (f) f.focus({preventScroll: true});
 }
-function closeSheet(){
+function hideSheet(){
   if (!openSheetEl) return; openSheetEl.hidden = true; if (openSheetEl.id === 'filters') updateFiltSum();
   openSheetEl = null; document.body.classList.remove('locked'); if (lastFocus && lastFocus.focus) lastFocus.focus({preventScroll: true});
 }
+function closeSheet(){
+  if (!openSheetEl) return;
+  if (history.state && history.state.sheet) history.back(); else hideSheet();
+}
+window.addEventListener('popstate', e => {
+  const st = e.state || {};
+  if (openSheetEl){ hideSheet(); return; }
+  if (!$('viewList').hidden && st.view !== 'list'){ showView('search', true); return; }
+  if (!$('summary').hidden && !st.results) goHome();
+});
 document.addEventListener('click', e => { if (openSheetEl && e.target.closest('[data-close]') && openSheetEl.contains(e.target)) closeSheet(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSheet();
+  if (e.key === 'Tab' && openSheetEl){   // o foco fica dentro da janela aberta
+    const f = [...openSheetEl.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select, [tabindex="0"]')].filter(x => x.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (!openSheetEl.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+});
 
 // ---------- views ----------
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
-function showView(v){
+function showView(v, fromPop){
+  if (!fromPop && v === 'list' && $('viewList').hidden) pushNav({view: 'list'});
+  if (!fromPop && v === 'search' && history.state && history.state.view === 'list'){ history.back(); return; }
   document.querySelectorAll('[data-view]').forEach(b => { if (b.dataset.view === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   $('viewSearch').hidden = v !== 'search'; $('viewList').hidden = v !== 'list';
   window.scrollTo({top: 0});
@@ -158,15 +183,26 @@ const airlinesOf = it => [...new Set([...it.outbound.segments, ...it.inbound.seg
 const DESKTOP = (() => { try { return matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e){ return false; } })();
 const LM_FEE = DESKTOP ? 10.5 : 0;
 const lmPrice = c => c.lm ? Math.round((c.lm.p + LM_FEE) * 100) / 100 : null;
+// só conta como "mais barato" noutro site se for o mesmo voo (mesmas horas de ida e volta)
+const sameFlight = (it, x) => x && x.out === fmtHM(it.outbound.departureTime) && x.in === fmtHM(it.inbound.departureTime);
 function bestOf(it, P){
   const c = it.cmp || {}, L = links(it, P || group());
-  const r = [{p: it.price, site: 'kiwi', name: 'Kiwi.com', url: it.bookingUrl}];
-  if (c.lm && c.lm.mac) r.push({p: lmPrice(c), site: 'lm', name: 'lastminute', url: L.lm});
-  if (c.ed) r.push({p: c.ed.p, site: 'ed', name: 'eDreams', url: L.ed});
+  const r = [{p: it.price, site: 'kiwi', name: 'Kiwi.com', url: L.kiwi}];
+  if (sameFlight(it, c.lm)) r.push({p: lmPrice(c), site: 'lm', name: 'lastminute', url: L.lm});
+  if (sameFlight(it, c.ed)) r.push({p: c.ed.p, site: 'ed', name: 'eDreams', url: L.ed});
   return r.reduce((a, b) => b.p < a.p - 0.005 ? b : a);
 }
 const groupPrice = (it, P) => bestOf(it, P).p * Math.max(1, P.payers);
-const hotelPrice = (it, P) => it.hotel ? it.hotel.p2 * Math.max(1, P.rooms) : 0;
+// o hotel foi visto para a mesma rota; se as datas do voo mudaram, estima pelo preço por noite
+const hotelP2 = it => { const H = it.hotel; if (!H) return 0; return H.pn ? Math.round(H.pn * nightsOf(it) * 100) / 100 : H.p2; };
+const hotelSameDates = it => !it.hotel || !it.hotel.ci || (it.hotel.ci === isoDay(it.outbound.departureTime) && it.hotel.co === isoDay(it.inbound.departureTime));
+function hotelUrl(it, P){
+  try { const u = new URL(it.hotel.url); u.searchParams.delete('aid');
+    u.searchParams.set('checkin', isoDay(it.outbound.departureTime)); u.searchParams.set('checkout', isoDay(it.inbound.departureTime));
+    u.searchParams.set('group_adults', P.adults); u.searchParams.set('no_rooms', P.rooms); u.searchParams.set('group_children', P.ages.length);
+    u.searchParams.delete('age'); P.ages.forEach(a => u.searchParams.append('age', a)); return u.toString(); } catch (e){ return it.hotel.url; }
+}
+const hotelPrice = (it, P) => it.hotel ? hotelP2(it) * Math.max(1, P.rooms) : 0;
 const packPrice = (it, P) => groupPrice(it, P) + hotelPrice(it, P);
 const priceFor = (it, P) => ctx && ctx.mode === 'pack' ? packPrice(it, P) : groupPrice(it, P);
 
@@ -194,8 +230,9 @@ function matchDest(it){
   return list.includes(code) || list.includes(cc);
 }
 const summaryText = () => `${sel.from === 'both' ? 'De Lisboa, Porto e Faro' : sel.from === 'OPO' ? 'Do Porto' : 'De ' + ORIGIN[sel.from]} · ${paxText()}`;
-const collapse = (title, sub) => { $('form').hidden = true; $('band').hidden = true; $('dealBox').hidden = true; $('pontes').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
-$('edit').addEventListener('click', () => { $('form').hidden = false; $('band').hidden = false; $('summary').hidden = true; renderDeal(); renderPontes(); if (!ctx || !ctx.home) showDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); });
+const collapse = (title, sub) => { if (!(history.state && history.state.results)) pushNav({results: 1}); $('form').hidden = true; $('band').hidden = true; $('dealBox').hidden = true; $('pontes').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
+function goHome(){ $('form').hidden = false; $('band').hidden = false; $('summary').hidden = true; renderDeal(); renderPontes(); if (!ctx || !ctx.home) showDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); }
+$('edit').addEventListener('click', () => { if (history.state && history.state.results) history.back(); else goHome(); });
 function showErr(msg){ $('out').innerHTML = `<div class="state err"><b>${esc(msg)}</b></div>`; }
 $('go').addEventListener('click', search);
 function search(){
@@ -213,7 +250,7 @@ function search(){
     const dep = isoDay(it.outbound.departureTime), n = nightsOf(it);
     if (sel.from !== 'both' && it.outbound.from !== sel.from) return false;
     if (dep < lo || dep > hi) return false;
-    if (sel.trip !== 'all' && n !== +sel.trip) return false;
+    if (sel.trip !== 'all' && (sel.trip === '4' ? n < 4 : n !== +sel.trip)) return false;
     if (!matchDest(it)) return false;
     if (o.direct && !isDirect(it)) return false;
     if (o.noDawn && (+fmtHM(it.outbound.departureTime).slice(0, 2) < 7 || +fmtHM(it.inbound.departureTime).slice(0, 2) < 7)) return false;
@@ -228,12 +265,19 @@ function search(){
   const destName = sel.to === 'city' ? $('city').value.trim() : DEST_NAME[sel.to];
   ctx.label = destName;
   collapse(mode === 'pack' ? `Voo + hotel · ${destName}` : mode === 'budget' ? `${eur0(budget)} · ${destName}` : `${destName} · ${fmtDay(range[0])} a ${fmtDay(range[1])}`, summaryText());
+  const soon = sel.when === '2w' && current.length < 4 ? `<div class="soon"><span>Para as próximas 2 semanas temos poucos voos guardados: o site guarda sobretudo os mais baratos das próximas 8 semanas. Pesquisa qualquer destino com datas à tua escolha.</span><button type="button" class="btn sm primary" data-golive>Pesquisar outras datas</button></div>` : '';
   if (!current.length){
-    $('out').innerHTML = `<div class="state"><b>${mode === 'pack' ? 'Ainda não há voo + hotel com estes filtros.' : budget ? `Nenhum voo cabe em ${eur0(budget)} para ${paxLabel(P)}.` : 'Sem voos com estes filtros.'}</b><span>Hoje o site tem os ${ALL.length} voos mais baratos de Lisboa, Porto e Faro. ${mode === 'pack' ? `Os preços de alojamento são vistos de manhã para os ${ALL.filter(x => x.hotel).length} destinos mais baratos. Experimenta "Qualquer lugar" ou o modo Explorar.` : 'Experimenta "Qualquer lugar", "Próximas 8 semanas" ou tira algum filtro.'}</span></div>`;
+    $('out').innerHTML = soon + `<div class="state"><b>${mode === 'pack' ? 'Ainda não há voo + hotel com estes filtros.' : budget ? `Nenhum voo cabe em ${eur0(budget)} para ${paxLabel(P)}.` : 'Sem voos com estes filtros.'}</b><span>Hoje o site tem os ${ALL.length} voos mais baratos de Lisboa, Porto e Faro. ${mode === 'pack' ? `Os preços de alojamento são vistos de manhã para os ${ALL.filter(x => x.hotel).length} destinos mais baratos. Experimenta "Qualquer lugar" ou o modo Explorar.` : 'Experimenta "Qualquer lugar", "Próximas 8 semanas" ou tira algum filtro.'}</span></div>`;
     return;
   }
   renderResults();
+  if (soon) $('out').insertAdjacentHTML('afterbegin', soon);
 }
+document.addEventListener('click', e => { if (!e.target.closest('[data-golive]')) return;
+  const t = tomorrow(); $('lD1').value = isoLocal(t); $('lD2').value = isoLocal(addDays(t, 3)); $('lOne').checked = false; $('lD2').disabled = false;
+  if (sel.from !== 'both') $('lFrom').value = `${ORIGIN[sel.from]} (${sel.from})`;
+  setMode('live'); goHome(); setTimeout(() => { $('lTo').focus(); $('form').scrollIntoView({block: 'center'}); }, 50);
+});
 function sortIdx(idx){
   const pf = i => priceFor(current[i], ctx.P);
   const by = {price: (a, b) => pf(a) - pf(b), dur: (a, b) => totalDur(current[a]) - totalDur(current[b]) || pf(a) - pf(b), date: (a, b) => current[a].outbound.departureTime.localeCompare(current[b].outbound.departureTime)}[sortBy];
@@ -264,7 +308,7 @@ function card(i, x = {}){
   const facts = [`<span class="fact">${esc(fmtShort(it.outbound.departureTime))} → ${esc(fmtShort(it.inbound.departureTime))}</span>`,
     isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', cheaperElsewhere(it)].join('');
   const saved = listUrls().has(it.bookingUrl);
-  return `<article class="dcard ${x.feat ? 'feat' : ''}" data-open="${i}" tabindex="0" aria-label="${esc(cityOf(it))}, ${eur0(total)}">
+  return `<article class="dcard ${x.feat ? 'feat' : ''}" data-open="${i}">
     <div class="art">${art(it.outbound.to, countryEn(it), x.feat ? 260 : 200)}
       ${x.badge ? `<span class="badge">${esc(x.badge)}</span>` : ''}
       <button type="button" class="heart ${saved ? 'on' : ''}" data-act="save" data-i="${i}" aria-label="${saved ? 'Já está na lista' : 'Guardar na lista'}" aria-pressed="${saved}">${icon('heart')}</button>
@@ -274,7 +318,7 @@ function card(i, x = {}){
         <div class="price"><b>${eur0(total)}</b><small>${esc(perTxt)}</small></div></div>
       ${pack ? costBar(groupPrice(it, P), hotelPrice(it, P), it.hotel) : ''}
       <div class="facts">${facts}</div>
-      <div class="cfoot">${esc(airlinesOf(it))}, ${fmtDur(totalDur(it))} de voo<span class="more">Ver viagem</span></div>
+      <div class="cfoot">${esc(airlinesOf(it))}, ${fmtDur(totalDur(it))} de voo<button type="button" class="more" data-open="${i}" aria-label="Ver viagem para ${esc(cityOf(it))}, ${eur0(total)}">Ver viagem</button></div>
     </div></article>`;
 }
 
@@ -306,7 +350,7 @@ function openTripFor(it, P){
       <button type="button" class="btn" data-sact="share" aria-label="Partilhar">${icon('share')}</button>
       <a class="btn primary" href="${esc(b.url)}" target="_blank" rel="noopener" data-out="${b.site}">${icon('plane')}Reservar${b.site !== 'kiwi' ? ' no ' + esc(b.name) : ' voo'} · ${eur0(b.p)}</a>
     </div>`;
-  openSheet('detail');
+  openSheet('detail', '#viagem=' + encodeURIComponent(it.key || ''));
   renderTab();
 }
 function setTab(t){ sheetTab = t; $('dBox').querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t))); renderTab(); }
@@ -314,12 +358,11 @@ const linkRow = (name, sub, url, label, tag) => `<div class="hrow"><div><b>${esc
 function links(it, P){
   const o = it.outbound.from, d = it.outbound.to, a = isoDay(it.outbound.departureTime), b = isoDay(it.inbound.departureTime);
   const b2 = s => s.slice(8, 10), my = s => s.slice(5, 7) + s.slice(0, 4);
-  const lmc = (it.cmp || {}).lm;
   const yymmdd = s => s.slice(2).replace(/-/g, ''), city = cityOf(it), cityEn = lastSeg(it).toCity.replace(/,.*$/, '');
   const kids = P.ages.length ? '&' + P.ages.map(x => `age=${x}`).join('&') : '';
   return {
-    lm: P.total > 1 || !(lmc && lmc.mac) ? aff('lm', lmSearch(o, d, a, b, P)) : lmc && lmc.mac ? (() => { const rid = lmc.mac.split('SCH')[0], j = Math.round(lmc.p * 1000);
-      return `https://www.lastminute.ie/msr/route/searching.do?departureAirport=${o}&arrivalAirport=${d}&outboundDay=${b2(a)}&outboundMonthYear=${my(a)}&returnDay=${b2(b)}&returnMonthYear=${my(b)}&adults=1&childs=0&infants=0&COBRANDED=LMNEN_LLMPROJECTEN&currency=EUR&url=search3.do&roundtrip=true&fareType=&requestId=${rid}&mac=${lmc.mac}&acntb=flight&utm_term=${o}${d}&utm_campaign=results&utm_medium=meta_search&utm_source=LMNEN_LLMPROJECTEN&bf_subsource=-----WS0S02RS01&j=${j}&jC=${j}_EUR&cp=0`; })() : 'https://www.lastminute.ie/',
+    kiwi: P.total > 1 ? aff('kiwi', kiwiSearch(o, d, a, b, P)) : it.bookingUrl,
+    lm: aff('lm', lmSearch(o, d, a, b, P)),
     ed: `https://www.edreams.pt/travel/?deeplink=/results/ret=${b};infants=${P.infants};children=${P.children};adults=${P.adults};type=R;class=TOURIST;from.iata=${o};to.iata=${d};dep=${a};collectionmethod=16`,
     sky: `https://www.skyscanner.pt/transporte/voos/${o.toLowerCase()}/${(CITY_CODE[d] || d).toLowerCase()}/${yymmdd(a)}/${yymmdd(b)}/?adultsv2=${P.adults}${P.ages.length ? '&childrenv2=' + P.ages.join('|') : ''}`,
     gfl: `https://www.google.com/travel/flights?hl=pt-PT&curr=EUR&q=${encodeURIComponent(`Voos de ${o} para ${d} em ${a} regresso ${b}`)}`,
@@ -331,7 +374,7 @@ function links(it, P){
 }
 function compareHtml(it, P, L){
   const c = it.cmp || {}, oh = fmtHM(it.outbound.departureTime), ih = fmtHM(it.inbound.departureTime);
-  const rows = [{name: 'Kiwi.com', p: it.price, url: it.bookingUrl}];
+  const rows = [{name: 'Kiwi.com', p: it.price, url: L.kiwi}];
   if (c.lm) rows.push({name: 'lastminute.com', p: lmPrice(c), fee: LM_FEE, url: L.lm, other: c.lm.out !== oh || c.lm.in !== ih ? c.lm : null});
   if (c.ed) rows.push({name: 'eDreams', p: c.ed.p, prime: c.ed.prime, url: L.ed, other: c.ed.out !== oh || c.ed.in !== ih ? c.ed : null});
   const min = Math.min(...rows.map(r => r.p));
@@ -347,8 +390,8 @@ function compareHtml(it, P, L){
 }
 function hotelHtml(it, P){
   const H = it.hotel, n = nightsOf(it), f = groupPrice(it, P), h = hotelPrice(it, P);
-  return `<div class="hrow"><div><b>${esc(H.name)}<i class="src bk">Booking</i></b><span>${esc(H.type)} · nota ${String(H.rating).replace('.', ',')} · ${eur0(H.p2)} por ${n} noite${n > 1 ? 's' : ''}, 2 pessoas num quarto</span></div><div class="hp"><a class="btn sm primary" href="${esc(H.url)}" target="_blank" rel="noopener" data-out="booking">Ver</a></div></div>
-    <div class="sec" style="gap:8px"><b>Voo + hotel para ${paxLabel(P)}: ${eur0(f + h)}</b>${costBar(f, h, H)}<span class="costnote">${P.rooms} quarto${P.rooms > 1 ? 's' : ''} × ${eur0(H.p2)}. O mais barato com nota 7 ou mais, visto de manhã. ${P.total > P.rooms * 2 ? 'Com mais de 2 pessoas por quarto o preço pode subir.' : 'Confirma no Booking antes de reservar.'}</span></div>`;
+  return `<div class="hrow"><div><b>${esc(H.name)}<i class="src bk">Booking</i></b><span>${esc(H.type)} · nota ${String(H.rating).replace('.', ',')} · ${hotelSameDates(it) ? '' : '≈ '}${eur0(hotelP2(it))} por ${n} noite${n > 1 ? 's' : ''}, 2 pessoas num quarto</span></div><div class="hp"><a class="btn sm primary" href="${esc(hotelUrl(it, P))}" target="_blank" rel="noopener" data-out="booking">Ver</a></div></div>
+    <div class="sec" style="gap:8px"><b>Voo + hotel para ${paxLabel(P)}: ${eur0(f + h)}</b>${costBar(f, h, H)}<span class="costnote">${P.rooms} quarto${P.rooms > 1 ? 's' : ''} × ${eur0(hotelP2(it))}. O mais barato com nota 7 ou mais, visto de manhã${hotelSameDates(it) ? '' : ' para outras datas nesta cidade, por isso o preço é uma estimativa por noite'}. ${P.total > P.rooms * 2 ? 'Com mais de 2 pessoas por quarto o preço pode subir.' : 'Confirma no Booking antes de reservar.'}</span></div>`;
 }
 function renderTab(){
   const body = $('dBody'); if (!SH || !body) return;
@@ -379,10 +422,10 @@ $('dBox').addEventListener('click', e => {
   shareTrip(SH.it, SH.P);
 });
 async function shareTrip(it, P){
-  const n = nightsOf(it), text = `${cityOf(it)} ${deO(it.outbound.from)}, ${fmtShort(it.outbound.departureTime)} a ${fmtShort(it.inbound.departureTime)} (${n} noites): desde ${eur0(bestOf(it, P).p)} por pessoa, ida e volta. Visto no Voa Daqui: ${location.origin + location.pathname}`;
+  const n = nightsOf(it), url = `${location.origin}${location.pathname}#viagem=${encodeURIComponent(it.key || '')}`, text = `${cityOf(it)} ${deO(it.outbound.from)}, ${fmtShort(it.outbound.departureTime)} a ${fmtShort(it.inbound.departureTime)} (${n} noites): desde ${eur0(bestOf(it, P).p)} por pessoa, ida e volta.`;
   try {
-    if (navigator.share){ await navigator.share({title: 'Voa Daqui', text, url: it.bookingUrl}); return; }
-    await navigator.clipboard.writeText(`${text}\n${it.bookingUrl}`); toast('Copiado. Cola numa mensagem para partilhar.');
+    if (navigator.share){ await navigator.share({title: 'Voa Daqui', text, url}); return; }
+    await navigator.clipboard.writeText(`${text}\n${url}`); toast('Link copiado. Cola numa mensagem para partilhar.');
   } catch (e){}
 }
 
@@ -394,7 +437,7 @@ function saveIt(it, P, btn){
   if (listUrls().has(it.bookingUrl)){ list = list.filter(x => x.url !== it.bookingUrl); toast(`${cityOf(it)} saiu da lista.`); }
   else {
     const n = nightsOf(it);
-    list.unshift({city: cityOf(it), country: countryOf(it), countryEn: countryEn(it), code: it.outbound.to, from: it.outbound.from, price: bestOf(it, P).p, pax: P.total, payers: P.payers,
+    list.unshift({city: cityOf(it), country: countryOf(it), countryEn: countryEn(it), code: it.outbound.to, from: it.outbound.from, dep: isoDay(it.outbound.departureTime), price: bestOf(it, P).p, pax: P.total, payers: P.payers,
       dates: `${fmtShort(it.outbound.departureTime)} → ${fmtShort(it.inbound.departureTime)} · ${n} noite${n > 1 ? 's' : ''}`, url: it.bookingUrl, addedAt: new Date().toISOString()});
     toast(`${cityOf(it)} guardado na lista.`);
   }
@@ -409,7 +452,7 @@ function drawList(){
   if (!list.length){ $('list').innerHTML = `<div class="empty"><b>A lista está vazia</b><span>Toca no coração dos destinos de que gostares. Depois partilha a lista com quem vai contigo.</span><button type="button" class="btn" data-goview="search">${icon('search')}Explorar destinos</button></div>`; return; }
   const live = new Set(ALL.map(it => it.bookingUrl));
   $('list').innerHTML = `<div><button type="button" class="btn" id="shareList">${icon('share')}Partilhar a lista</button></div>` + list.map((x, k) => `<div class="item"><div class="thumb">${art(x.code || x.city, x.countryEn || '', 200)}</div><div class="ib">
-      <div class="top"><div><div class="t">${esc(x.city)}${x.country ? ` <span class="muted" style="font-weight:500">· ${esc(x.country)}</span>` : ''}</div><div class="s">${esc(x.dates)} · ${esc(deO(x.from))}${DATA && !live.has(x.url) ? ' · já não está entre os mais baratos de hoje' : ''}</div></div>
+      <div class="top"><div><div class="t">${esc(x.city)}${x.country ? ` <span class="muted" style="font-weight:500">· ${esc(x.country)}</span>` : ''}</div><div class="s">${esc(x.dates)} · ${esc(deO(x.from))}${x.dep && x.dep < isoLocal(new Date()) ? '' : DATA && !live.has(x.url) ? ' · já não está entre os mais baratos de hoje' : ''}</div>${x.dep && x.dep < isoLocal(new Date()) ? '<span class="fact past">Esta viagem já passou</span>' : ''}</div>
       <div class="pr"><b>${eur0(x.price)}</b><br><span class="s">por pessoa</span></div></div>
       <div class="row2"><span class="s">guardado a ${fmtDay(new Date(x.addedAt))}</span><span class="btns"><a class="btn sm" href="${esc(x.url)}" target="_blank" rel="noopener">Ver voo</a><button type="button" class="btn sm" data-li="del" data-k="${k}" style="color:var(--warn)">Remover</button></span></div>
     </div></div>`).join('');
@@ -585,16 +628,18 @@ $('pontes').addEventListener('click', e => {
   const b = e.target.closest('[data-pt]'), a = e.target.closest('[data-pall]');
   const P = group();
   if (b){ const p = DATA.pontes.find(x => x.id === b.dataset.pt), x = p && p.items.find(i => i.key === b.dataset.pk); if (x) openTripFor(toIt(x), P); return; }
-  if (!a) return;
-  const p = DATA.pontes.find(x => x.id === a.dataset.pall); if (!p) return;
+  if (a) openPonte(a.dataset.pall);
+});
+function openPonte(id){
+  const P = group(), p = (DATA.pontes || []).find(x => x.id === id); if (!p || !p.items || !p.items.length) return false;
   const title = ponteTitle(p);
   current = p.items.filter(x => sel.from === 'both' || x.o === sel.from).map(toIt);
   ctx = {P, o: opts(), mode: 'explore', budget: 0, label: title, ponte: {id: p.id, title}};
   sortBy = 'price';
   collapse(title, `${ponteDates(p)}, ${p.days} dias · ${summaryText()}`);
-  if (!current.length){ $('out').innerHTML = '<div class="state"><b>Sem voos desta origem para esta ponte.</b><span>Escolhe "Todos" em "De onde".</span></div>'; return; }
-  renderResults();
-});
+  if (!current.length){ $('out').innerHTML = '<div class="state"><b>Sem voos desta origem para esta ponte.</b><span>Escolhe "Todos" em "De onde".</span></div>'; return true; }
+  renderResults(); return true;
+}
 
 // ---------- página inicial: todos os destinos ----------
 function showDefault(){
@@ -627,7 +672,6 @@ document.addEventListener('click', e => {
   if (b){ const it = current[+b.dataset.i]; if (it) saveIt(it, ctx.P, b); return; }
   const o = e.target.closest('[data-open]'); if (o && !openSheetEl) openTrip(+o.dataset.open);
 });
-document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.dcard[data-open]')){ e.preventDefault(); openTrip(+e.target.dataset.open); } });
 
 // ---------- visitas (GoatCounter, sem cookies) ----------
 // Para ligar: escrever o código da conta em assets/config.js (VOA_CONFIG.goatcounter).
@@ -639,13 +683,33 @@ document.addEventListener('click', e => {
   if (host && host !== location.hostname) window.goatcounter.count({path: 'saida/' + host, title: 'Saída para ' + host, event: true});
 }, true);
 
+// ---------- preços desatualizados ----------
+function checkStale(){
+  const age = (Date.now() - new Date(DATA.updated)) / 36e5, h = new Date().getHours();
+  const stale = age > 10 || (age > 3 && h >= 9);   // de noite não há atualizações (23h às 7h)
+  $('stale').hidden = !stale;
+  if (stale) $('stale').innerHTML = `<span><b>Preços de há ${age < 48 ? Math.round(age) + ' horas' : Math.round(age / 24) + ' dias'}.</b> As atualizações automáticas estão atrasadas, por isso os preços podem já ter mudado. Confirma sempre no site da reserva.</span>`;
+}
+// ---------- links diretos: #viagem=… e #ponte=… ----------
+function openFromHash(){
+  const h = decodeURIComponent(location.hash.slice(1)); if (!h) return;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e){}
+  if (h.startsWith('viagem=')){
+    const k = h.slice(7), x = DATA.items.find(i => i.key === k) || (DATA.pontes || []).flatMap(p => p.items || []).find(i => i.key === k);
+    if (x) openTripFor(toIt(x), group()); else toast('Essa viagem já não está entre as mais baratas de hoje. Vê as de agora.');
+  } else if (h.startsWith('ponte=')){ if (!openPonte(h.slice(6))) toast('Essa ponte já não tem voos guardados.'); }
+}
+
 // ---------- start ----------
 drawList();
 $('go').disabled = true; $('goTxt').textContent = 'A carregar os preços…';
 fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => {
+  // tira voos que partem nas próximas 3 horas ou que já partiram (se as atualizações pararem)
+  const cut = new Date(Date.now() + 3 * 36e5), keep = x => new Date(x.out.dep + ':00') > cut;
+  j.items = j.items.filter(keep); (j.pontes || []).forEach(p => { p.items = (p.items || []).filter(keep); });
   DATA = j; ALL = j.items.map(toIt);
   $('go').disabled = false; $('goTxt').textContent = mode === 'live' ? 'Pesquisar voos' : 'Procurar voos';
   const u = new Date(j.updated);
   $('foot').textContent = `Preços por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
-  renderDeal(); renderPontes(); renderBoard(); showDefault(); drawList();
+  renderDeal(); renderPontes(); renderBoard(); showDefault(); drawList(); checkStale(); openFromHash();
 }).catch(() => { $('goTxt').textContent = 'Não foi possível carregar os preços'; showErr('Não foi possível carregar os voos. Tenta recarregar a página daqui a pouco.'); });

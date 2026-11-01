@@ -6,11 +6,11 @@
 <title>Sobre o Voa Daqui</title>
 <meta name="description" content="Quem somos, como funcionam os preços, links de afiliado e privacidade.">
 <meta name="theme-color" content="#0a2540">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffc72c'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;700;800&display=swap">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="canonical" href="https://voadaqui.pt/sobre.html">
 <style>
+@font-face{font-family:"Schibsted Grotesk";src:url("assets/fonts/schibsted-grotesk.woff") format("woff");font-weight:400 900;font-display:swap}
 :root{--bg:#f4f6f9;--panel:#fff;--line:#e2e6ed;--ink:#0a2540;--muted:#5a6b85;--navy:#0a2540;--dim:#a9bad3;--sun:#ffc72c;--sun-ink:#1f1600}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#08131f;--panel:#0f1f33;--line:#1f3550;--ink:#eaf0f8;--muted:#97a8c0;--navy:#050e19}}
 :root[data-theme="dark"]{--bg:#08131f;--panel:#0f1f33;--line:#1f3550;--ink:#eaf0f8;--muted:#97a8c0;--navy:#050e19}
@@ -53,10 +53,11 @@ small{color:var(--muted)}
     <h2>Como funcionam os preços</h2>
     <ul>
       <li>De hora a hora, das 7h às 23h, procuramos no Kiwi.com os voos mais baratos para escapadinhas de 2 a 4 noites nas próximas 8 semanas.</li>
-      <li>Comparamos as mesmas datas no lastminute.com e, nos destinos mais baratos, no eDreams. O botão "Reservar" leva-te ao site onde o voo estava mais barato.</li>
-      <li>O lastminute.com cobra uma taxa de agência no computador (cerca de 10 € por pessoa) que não cobra no telemóvel. No computador já somamos essa estimativa ao preço deles; mostramos também o link para o site oficial da companhia, onde não há taxa de agência.</li>
+      <li>Comparamos as mesmas datas no lastminute.com e, nos destinos mais baratos, no eDreams. Só dizemos que outro site é "mais barato" quando é exatamente o mesmo voo (mesmas horas). O botão "Reservar" leva-te ao site onde esse voo estava mais barato e, para grupos, abre a pesquisa já com todas as pessoas.</li>
+      <li>Mostramos também o link para o site oficial da companhia (Ryanair, easyJet, TAP…). Muitas vezes é lá que o mesmo voo sai mais barato, porque não há taxa de agência. Esses links não nos dão comissão.</li>
+      <li>O lastminute.com cobra uma taxa de agência no computador (cerca de 10 € por pessoa) que não cobra no telemóvel. No computador já somamos essa estimativa ao preço deles.</li>
       <li>Os preços são por pessoa, ida e volta, só com mochila pequena. Malas de porão e lugares marcados pagam-se à parte.</li>
-      <li>No modo Voo + hotel, juntamos o alojamento mais barato com nota 7 ou mais no Booking.com, nas mesmas datas. O preço é visto para 2 pessoas num quarto e multiplicado pelos quartos que escolheres, por isso é uma estimativa.</li>
+      <li>No modo Voo + hotel, juntamos o alojamento mais barato com nota 7 ou mais no Booking.com, visto todas as manhãs para 2 pessoas num quarto e multiplicado pelos quartos que escolheres. Se durante o dia o voo mais barato mudar de datas, calculamos pelo preço por noite. Por isso é sempre uma estimativa: o botão abre o Booking com as datas e as pessoas certas para veres o preço final.</li>
       <li>No separador "Qualquer voo" escolhes qualquer destino e datas, e abrimos a pesquisa já feita no Kiwi.com e no lastminute.com, com os preços ao minuto. Essa pesquisa acontece no site deles.</li>
       <li>A Pechincha do dia aparece quando uma ligação está pelo menos 30% abaixo do preço habitual dos últimos 21 dias.</li>
       <li>Os preços mudam a toda a hora e os lugares mais baratos costumam ser poucos. Confirma sempre o preço final no site da reserva antes de pagar.</li>
@@ -65,7 +66,7 @@ small{color:var(--muted)}
 
   <section id="comissoes">
     <h2>Como ganhamos dinheiro</h2>
-    <p>Alguns botões são links de afiliado: se reservares através deles, o site parceiro (por exemplo, Kiwi.com, lastminute.com, eDreams ou Booking.com) pode pagar-nos uma pequena comissão. <b>Tu pagas exatamente o mesmo.</b> As comissões nunca mudam a ordem dos resultados: aparece primeiro o mais barato.</p>
+    <p>Alguns botões são links de afiliado: se reservares através deles, o site parceiro (por exemplo, Kiwi.com, lastminute.com, eDreams ou Booking.com) pode pagar-nos uma pequena comissão. <b>Tu pagas exatamente o mesmo.</b> As comissões nunca mudam a ordem dos resultados: aparece primeiro o mais barato, e mostramos também o site oficial da companhia mesmo quando não ganhamos nada com isso.</p>
   </section>
 
   <section id="privacidade">
@@ -75,13 +76,15 @@ small{color:var(--muted)}
       <li>A tua lista de viagens guardadas e as escolhas do formulário ficam só no teu navegador (armazenamento local). Não chegam até nós.</li>
       <li>Contamos visitas de forma anónima com o GoatCounter, que não usa cookies nem guarda o teu endereço IP, e contamos quantas vezes cada site parceiro é aberto, sem saber quem o abriu.</li>
       <li>Quando abres um site parceiro, passas a estar sob a política de privacidade desse site.</li>
+      <li>O tipo de letra e todos os ficheiros do site são servidos pelo próprio site. Não usamos Google Fonts, Google Analytics nem pixels de redes sociais.</li>
       <li>O site está alojado no GitHub Pages, que pode registar dados técnicos de acesso (como o IP) por razões de segurança.</li>
+      <li>Responsável pelo site e pelos dados: Voa Daqui, contacto <a href="mailto:geral@voadaqui.pt">geral@voadaqui.pt</a>. Podes pedir informação ou a remoção de qualquer dado por esse email.</li>
     </ul>
   </section>
 
   <section>
     <h2>Contacto</h2>
-    <p>Sugestões ou um preço errado? Abre um pedido em <a href="https://github.com/nunoleiria-web/voa-daqui/issues" rel="noopener">github.com/nunoleiria-web/voa-daqui</a>.</p>
+    <p>Sugestões ou um preço errado? Escreve para <a href="mailto:geral@voadaqui.pt">geral@voadaqui.pt</a>.</p>
     <small>As imagens dos destinos são ilustrações.</small>
   </section>
 </main>

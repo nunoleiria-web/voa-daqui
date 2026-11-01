@@ -15,20 +15,22 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0a2540">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffbe2e'/%3E%3Cpath d='M14 18 6 15.5l2-2 9 1.3 5.3-6c1.3-1.3 3.4-1.8 4.2-1 .8.8.3 2.9-1 4.2l-6 5.3 1.3 9-2 2L14 18' fill='%231b1404'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap">
+<link rel="canonical" href="https://voadaqui.pt/">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preload" href="assets/fonts/schibsted-grotesk.woff" as="font" type="font/woff" crossorigin>
 <style>
+@font-face{font-family:"Schibsted Grotesk";src:url("assets/fonts/schibsted-grotesk.woff") format("woff");font-weight:400 900;font-style:normal;font-display:swap}
 /* Voa Daqui. Atlantic navy + sun yellow, one family (Schibsted Grotesk) with tabular figures.
    Desktop: sticky header with nav, navy band = title + search panel + live "mais baratos agora" board,
    results grid of 3, trip details as a right-hand drawer. Mobile: same band stacked, bottom tab bar, bottom sheets. */
 :root{
   --bg:#f4f6f9; --panel:#ffffff; --raise:#eef1f5; --line:#e2e6ed; --line2:#d3d9e3;
-  --ink:#0a2540; --muted:#5a6b85; --soft:#8593a8;
+  --ink:#0a2540; --muted:#5a6b85; --soft:#5f6f88;
   --navy:#0a2540; --navy2:#123359; --on-navy:#ffffff; --on-navy-dim:#a9bad3;
   --sun:#ffc72c; --sun-ink:#1f1600; --sun-soft:#fff4d1;
   --blue:#1d5bd6; --blue-soft:#e6eefc;
-  --go:#0b8f63; --go-soft:#e1f5ec; --warn:#c8472b; --warn-soft:#fbe6df;
+  --go:#067251; --go-soft:#e1f5ec; --warn:#c8472b; --warn-soft:#fbe6df;
   --brand:var(--sun); --brand-ink:var(--sun-ink); --brand-soft:var(--sun-soft); --sky:var(--blue);
   --bk:#2f6fe0; --lm:#d93a7c; --fv:#7a3ce0;
   --shadow:0 1px 2px rgba(10,37,64,.05),0 4px 16px rgba(10,37,64,.06);
@@ -41,7 +43,7 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#08131f; --panel:#0f1f33; --raise:#152940; --line:#1f3550; --line2:#2a4566;
-  --ink:#eaf0f8; --muted:#97a8c0; --soft:#7286a1;
+  --ink:#eaf0f8; --muted:#97a8c0; --soft:#8d9fb8;
   --navy:#050e19; --navy2:#0d1d31; --on-navy-dim:#93a6c1;
   --sun:#ffcf4a; --sun-soft:#3a2e0c; --blue:#7aa7ff; --blue-soft:#14284a;
   --go:#4cd39b; --go-soft:#0f3326; --warn:#ff8c6b; --warn-soft:#3a1d14;
@@ -50,7 +52,7 @@
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#08131f; --panel:#0f1f33; --raise:#152940; --line:#1f3550; --line2:#2a4566;
-  --ink:#eaf0f8; --muted:#97a8c0; --soft:#7286a1;
+  --ink:#eaf0f8; --muted:#97a8c0; --soft:#8d9fb8;
   --navy:#050e19; --navy2:#0d1d31; --on-navy-dim:#93a6c1;
   --sun:#ffcf4a; --sun-soft:#3a2e0c; --blue:#7aa7ff; --blue-soft:#14284a;
   --go:#4cd39b; --go-soft:#0f3326; --warn:#ff8c6b; --warn-soft:#3a1d14;
@@ -60,7 +62,8 @@
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.price b,.board .bp,.sheethead .pill b,.dart .was b,.ponte li i,.item .pr b,.ctr output,.stp b{font-variant-numeric:tabular-nums}
 body.locked{overflow:hidden}
 button{font:inherit;color:inherit}
 a{color:inherit}
@@ -238,6 +241,12 @@ input[type=text],input[type=date],input[type=number],select{width:100%;min-width
 @media (min-width:900px){.dload{grid-template-columns:minmax(0,1fr) 300px;align-items:center;column-gap:28px}.dload b,.dload>span{grid-column:1}.dload .bar{grid-column:2;grid-row:1/3;max-width:none;margin:0}.dload .minis{grid-column:1/-1}}
 @media (max-width:420px){.dart .place b{font-size:1.7rem}.dart .was b{font-size:1.8rem}}
 
+/* aviso de preços antigos */
+.stale{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:var(--r);background:var(--warn-soft);color:var(--ink);font-size:.9rem;border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.stale b{color:var(--warn)}
+.fact.past{background:var(--warn-soft);color:var(--warn)}
+.soon{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:14px 16px;border-radius:var(--r);background:var(--blue-soft);font-size:.92rem}
+
 /* pesquisa livre */
 .fields.live{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
 .fields.live input[type=date]{padding-inline:8px}
@@ -327,7 +336,8 @@ input:disabled{opacity:.45}
 .costleg b{color:var(--ink)}
 .costnote{font-size:.8rem;color:var(--muted)}
 .cfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:2px}
-.cfoot .more{flex:none;font-weight:600;color:var(--blue)}
+.cfoot .more{flex:none;font-weight:600;color:var(--blue);border:0;background:none;padding:4px 0;cursor:pointer;font-size:inherit}
+.cfoot .more:hover{text-decoration:underline}
 .state{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;display:grid;gap:8px;font-size:.92rem;color:var(--muted)}
 .state b{color:var(--ink);font-size:1.05rem}
 .state.err{border-color:var(--warn)}
@@ -486,7 +496,7 @@ input:disabled{opacity:.45}
   <div class="wrap">
     <div class="hero" id="hero">
       <h1>Voos baratos a partir de Lisboa, Porto e Faro</h1>
-      <p>Escapadinhas de 2 a 4 noites nas próximas 8 semanas. Comparamos Kiwi.com, lastminute e eDreams e mostramos sempre o preço mais baixo.</p>
+      <p>Escapadinhas de 2 a 4 noites nas próximas 8 semanas. Comparamos o Kiwi.com com o lastminute e o eDreams e mostramos também o site oficial da companhia, para veres onde está mais barato.</p>
       <span class="live"><i></i>Preços revistos de hora a hora</span>
     </div>
 
@@ -523,10 +533,10 @@ input:disabled{opacity:.45}
 
         <div class="field"><span class="lbl">Quanto tempo</span>
           <div class="chips scroll" data-group="trip">
-            <button type="button" data-v="all" aria-pressed="true">2 a 4 noites</button>
+            <button type="button" data-v="all" aria-pressed="true">Todas</button>
             <button type="button" data-v="2" aria-pressed="false">2 noites</button>
             <button type="button" data-v="3" aria-pressed="false">3 noites</button>
-            <button type="button" data-v="4" aria-pressed="false">4 noites</button>
+            <button type="button" data-v="4" aria-pressed="false">4 ou mais</button>
           </div>
         </div>
 
@@ -586,6 +596,7 @@ input:disabled{opacity:.45}
 <main class="wrap main">
   <section class="view" id="viewSearch">
     <div class="summary" id="summary" hidden><svg class="ic"><use href="#i-search"/></svg><div><b id="sumT"></b><span id="sumS"></span></div><button type="button" class="btn sm" id="edit"><svg class="ic"><use href="#i-edit"/></svg>Alterar</button></div>
+    <div class="stale" id="stale" hidden role="status"></div>
     <section class="deal quiet" id="dealBox" hidden aria-live="polite"></section>
     <section class="pontes" id="pontes" hidden aria-label="Pontes e feriados"></section>
     <section id="out" aria-live="polite" class="view"></section>
@@ -597,7 +608,7 @@ input:disabled{opacity:.45}
   </section>
 
   <footer class="foot">
-    <nav aria-label="Rodapé"><a href="sobre.html#precos">Como funcionam os preços</a><a href="sobre.html#privacidade">Privacidade</a><a href="sobre.html#comissoes">Comissões</a></nav>
+    <nav aria-label="Rodapé"><a href="sobre.html#precos">Como funcionam os preços</a><a href="sobre.html#privacidade">Privacidade</a><a href="sobre.html#comissoes">Comissões</a><a href="mailto:geral@voadaqui.pt">geral@voadaqui.pt</a></nav>
     <p id="foot">Preços por pessoa, ida e volta, só com mochila pequena, atualizados de hora a hora. Mudam a toda a hora: confirma sempre o preço final no site antes de pagar. As imagens são ilustrações.</p>
   </footer>
 </main>
