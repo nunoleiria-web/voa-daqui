@@ -1,9 +1,6 @@
 name: Teste Travelpayouts
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: ['tools/tp_test.py', '.github/workflows/tp-test.yml']
 permissions:
   contents: write
 jobs:

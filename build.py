@@ -199,6 +199,64 @@ def parse_hotels(path, items):
     return n
 
 
+# ---------- descoberta (Travelpayouts) e fins de semana ----------
+CITY_CODE = {'STN': 'LON', 'LTN': 'LON', 'LGW': 'LON', 'LHR': 'LON', 'SEN': 'LON', 'LCY': 'LON', 'BVA': 'PAR', 'ORY': 'PAR', 'CDG': 'PAR',
+             'BGY': 'MIL', 'MXP': 'MIL', 'LIN': 'MIL', 'FCO': 'ROM', 'CIA': 'ROM', 'HHN': 'FRA', 'NRN': 'DUS', 'EIN': 'AMS', 'CRL': 'BRU',
+             'GRO': 'BCN', 'REU': 'BCN', 'TFS': 'TCI', 'TFN': 'TCI', 'ARN': 'STO', 'NYO': 'STO', 'BMA': 'STO', 'GOT': 'GOT'}
+CONFIRM_TOP, CONFIRM_TOP_LIGHT = 8, 5   # quantos candidatos da Travelpayouts confirmar no Kiwi
+TP_MAX_AGE_H = 4
+
+
+def to_confirm(items, now, light=False):
+    """Voos que a Travelpayouts viu mais baratos do que os nossos (ou ligações que não temos),
+    e que entrariam na lista. A tarefa confirma-os no Kiwi.com nas datas indicadas."""
+    path = ROOT / 'data' / 'tp.json'
+    if not path.exists():
+        return []
+    tp = json.loads(path.read_text(encoding='utf-8'))
+    try:
+        age = (now - dt.datetime.fromisoformat(tp['updated'])).total_seconds() / 3600
+    except Exception:
+        age = 99
+    if age > TP_MAX_AGE_H:
+        print(f'aviso: dados da Travelpayouts com {age:.0f} h, não há candidatos a confirmar')
+        return []
+    ours, cap = {}, {}
+    for it in items:
+        for k in ((it['o'], it['to']), (it['o'], CITY_CODE.get(it['to'], it['to']))):
+            ours[k] = min(ours.get(k, 10 ** 6), it['price'])
+        cap[it['o']] = max(cap.get(it['o'], 0), it['price'])
+    tomorrow = (now.date() + dt.timedelta(days=1)).isoformat()
+    out = []
+    for c in tp.get('cands', []):
+        if c['dep'] < tomorrow or c['o'] not in cap:
+            continue
+        mine = min(ours.get((c['o'], c['city']), 10 ** 6), ours.get((c['o'], c['to']), 10 ** 6))
+        if c['price'] >= mine - 2 or c['price'] > cap[c['o']]:
+            continue
+        c['ours'] = None if mine == 10 ** 6 else mine
+        out.append(c)
+    return out[:CONFIRM_TOP_LIGHT if light else CONFIRM_TOP]
+
+
+def parse_weekend(path):
+    """fds.txt: fins de semana sem faltar ao trabalho (ida à sexta depois das 18h, volta ao domingo).
+    Mesmo formato do rows.txt."""
+    if not path.exists():
+        return []
+    its = parse(None, path.read_text(encoding='utf-8').splitlines(), minimum=0)
+    keep = []
+    for it in its:
+        a, b = dt.datetime.fromisoformat(it['out']['dep']), dt.datetime.fromisoformat(it['in']['dep'])
+        if not ((a.weekday() == 4 and a.hour >= 18) or a.weekday() == 5) or b.weekday() not in (5, 6):
+            continue
+        it['key'] = 'fds|' + it['key']
+        it['best'] = it['price']
+        it['wk'] = 1
+        keep.append(it)
+    return sorted(keep, key=lambda i: i['price'])
+
+
 def best_price(it):
     ps = [it['price']] + [c['p'] for c in it.get('cmp', {}).values()]
     return min(ps)
@@ -272,10 +330,12 @@ def main():
     hist = sorted(hist, key=lambda h: h['d'])[-KEEP_DAYS:]
 
     plist = attach_pontes(now.date(), ROOT / 'pontes.txt')
+    tomorrow = (now.date() + dt.timedelta(days=1)).isoformat()
+    weekend = [w for w in parse_weekend(ROOT / 'fds.txt') if w['out']['dep'][:10] >= tomorrow]
     deps = sorted(i['out']['dep'][:10] for i in items)
     out = {'updated': now.isoformat(timespec='minutes'), 'days': len(prev), 'needDays': MIN_DAYS,
            'range': [deps[0], deps[-1]], 'items': sorted(items, key=lambda i: i['price']),
-           'deal': deal, 'others': others, 'top': top, 'pontes': plist}
+           'deal': deal, 'others': others, 'top': top, 'pontes': plist, 'weekend': weekend}
     DATA.parent.mkdir(exist_ok=True)
     DATA.write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     HIST.write_text(json.dumps(hist, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
@@ -283,7 +343,13 @@ def main():
     print(f'{len(items)} voos · histórico de {len(prev)} dias · {ncmp} preços de outros sites · ' +
           (f"pechincha: {d['item']['o']} → {d['item']['city']} {d['item']['price']} € (normal {d['base']} €, −{round(d['off']*100)}%)" if d else 'sem pechincha hoje'))
     lm, ed = to_compare(items, deal, light)
-    print(f'{nhot} destinos com alojamento')
+    print(f'{nhot} destinos com alojamento · {len(weekend)} fins de semana sem faltar ao trabalho')
+    conf = to_confirm(items, now, light)
+    print('\nPARA CONFIRMAR (Kiwi, voo visto mais barato na Travelpayouts; origem|destino|ida|volta):')
+    for c in conf:
+        print(f"  {c['o']}|{c['to']}|{c['dep']}|{c['ret']}  (visto a {c['price']} €" + (f", nosso {c['ours']} €)" if c['ours'] else ", ligação nova)"))
+    if not conf:
+        print('  (nenhum)')
     print('\nPARA COMPARAR (origem destino ida volta):')
     for site, lst in (('lastminute.com', lm), ('eDreams', ed)):
         for it in lst:
