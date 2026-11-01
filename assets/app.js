@@ -403,7 +403,9 @@ function renderTab(){
     body.innerHTML = `<div class="sec"><h4>${icon('plane')}Horários</h4>${legBlock('Ida', it.outbound)}${legBlock('Volta', it.inbound)}
         <div class="facts">${isDirect(it) ? '<span class="fact ok">Direto</span>' : ''}<span class="fact dim">Só mochila pequena incluída</span></div></div>
       <div class="sec"><h4>${icon('swap')}Comparar com outros sites</h4>
-        ${compareHtml(it, P, L)}</div>`;
+        ${compareHtml(it, P, L)}</div>
+      ${CFG.airhelp ? `<div class="sec"><h4>${icon('plane')}Se o voo atrasar ou for cancelado</h4>
+        ${linkRow('Podes ter direito a até 600 € por pessoa', 'Pelas regras europeias, se chegares com mais de 3 horas de atraso, ou se o voo for cancelado em cima da hora. Podes pedir diretamente à companhia, de graça, ou deixar a AirHelp tratar de tudo (cobra uma parte só se ganhares).', CFG.airhelp, 'Ver na AirHelp', null)}</div>` : ''}`;
   } else if (sheetTab === 'stay'){
     body.innerHTML = `<div class="sec"><h4>${icon('bed')}Alojamento</h4>
         <span class="note">${n} noite${n > 1 ? 's' : ''} · ${fmtShort(it.outbound.departureTime)} a ${fmtShort(it.inbound.departureTime)} · ${paxLabel(P)}, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}. Os sites abrem já com estas datas.</span>
