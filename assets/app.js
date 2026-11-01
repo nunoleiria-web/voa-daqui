@@ -309,7 +309,8 @@ function card(i, x = {}){
   const total = pack ? packPrice(it, P) : groupPrice(it, P);
   const perTxt = pack ? `voo + hotel, ${paxLabel(P)}` : P.payers > 1 ? `${eur0(b.p)} por pessoa` : 'ida e volta';
   const facts = [`<span class="fact">${esc(fmtShort(it.outbound.departureTime))} → ${esc(fmtShort(it.inbound.departureTime))}</span>`,
-    isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', cheaperElsewhere(it)].join('');
+    isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', cheaperElsewhere(it),
+    (() => { const k = !pack && costOf(it, P); return k ? `<span class="fact dim" title="Voo, alojamento, transporte do aeroporto e comida (estimativa)">Tudo incluído ≈ ${eur0(k.total)}</span>` : ''; })()].join('');
   const saved = listUrls().has(it.bookingUrl);
   return `<article class="dcard ${x.feat ? 'feat' : ''}" data-open="${i}">
     <div class="art">${art(it.outbound.to, countryEn(it), x.feat ? 260 : 200)}
@@ -391,6 +392,33 @@ function compareHtml(it, P, L){
   return `<span class="note">Mesmas datas, por pessoa, só com mochila.${seen} Os outros sites abrem já com os aeroportos, as datas e ${paxLabel(P)}.</span>${priced}${links}
     <span class="note">O eDreams e o lastminute.com mostram o preço sem malas; acrescenta-as lá. Confirma horários e malas antes de pagar.</span>`;
 }
+// ---------- custo real da viagem (estimativa para orçamento low-cost) ----------
+// transporte público do aeroporto ao centro, só ida, em euros (autocarro, metro ou comboio mais barato)
+const XFER = {SVQ:4,AGP:2.5,MAD:5,BCN:7,VLC:5,ALC:4,BIO:3.5,GRX:3,PMI:5,TFS:10,TFN:3,LPA:2.5,ACE:3,FUE:3,IBZ:4,SCQ:3,VGO:3,OVD:9,FNC:5,PDL:5,TER:5,OPO:2.6,LIS:2,FAO:2.5,
+  RAK:3,TNG:15,CMN:5,AGA:20,FEZ:15,MRS:10,NCE:10,TLS:2,BOD:2,NTE:9.5,LYS:17,BVA:17,ORY:11,CDG:12,STN:17,LTN:17,LGW:14,LHR:14,SEN:9,MAN:6,LPL:3.5,BRS:12,NCL:3.5,EDI:9,GLA:10,BHX:5,
+  DUB:8,ORK:4,SNN:7,KIR:5,NOC:5,BGY:10,MXP:13,LIN:5,FCO:14,CIA:6,TRN:7.5,NAP:5,VCE:10,TSF:12,BLQ:13,PSA:5.5,FLR:6,CTA:4,PMO:6.5,BRI:5.5,CAG:4.5,HHN:18,FRA:6,NRN:18,DUS:3.5,CGN:3,BER:4.5,
+  MUC:14,FMM:15,HAM:4,STR:4,CRL:17,BRU:11,EIN:5,AMS:6.5,RTM:4,GVA:0,ZRH:7,BSL:5,LUX:0,MLA:2.5,VIE:4.5,PRG:3,BUD:6,KRK:4,WAW:1.5,GDN:1.5,CPH:5,ARN:12,OSL:15,HEL:4,ATH:6,DBV:8,SPU:8};
+// comida por pessoa e por dia (refeições simples) e quarto duplo barato por noite, por país
+const FOOD = {Spain:35,Portugal:30,Morocco:20,France:45,'United Kingdom':45,Ireland:50,Italy:40,Germany:40,Netherlands:45,Belgium:45,Switzerland:70,Luxembourg:50,Malta:35,Austria:40,Czechia:25,'Czech Republic':25,Hungary:25,Poland:22,Denmark:60,Sweden:55,Norway:65,Finland:50,Greece:35,Croatia:40};
+const ROOM = {Spain:70,Portugal:70,Morocco:40,France:90,'United Kingdom':100,Ireland:120,Italy:80,Germany:80,Netherlands:110,Belgium:90,Switzerland:140,Luxembourg:110,Malta:70,Austria:85,Czechia:60,'Czech Republic':60,Hungary:55,Poland:50,Denmark:120,Sweden:110,Norway:130,Finland:100,Greece:65,Croatia:75};
+function costOf(it, P){
+  const c = countryEn(it), n = nightsOf(it), ppl = Math.max(1, P.total);
+  if (!(c in FOOD)) return null;
+  const flight = groupPrice(it, P), stay = it.hotel ? hotelPrice(it, P) : ROOM[c] * n * Math.max(1, P.rooms);
+  const xfer = (XFER[it.outbound.to] ?? XFER[CITY_CODE[it.outbound.to]] ?? 8) * 2 * ppl, food = FOOD[c] * n * ppl;
+  return {flight, stay, stayEst: !it.hotel, xfer, food, total: flight + stay + xfer + food, ppl, n};
+}
+function costHtml(it, P){
+  const k = costOf(it, P); if (!k) return '';
+  const row = (a, b, v) => `<div class="crow"><span>${a}${b ? `<small>${b}</small>` : ''}</span><b>${eur0(v)}</b></div>`;
+  return `<div class="sec cost"><h4>${icon('wallet')}Quanto vais gastar ao todo</h4>
+    ${row('Voo, ida e volta', P.total > 1 ? paxLabel(P) : '', k.flight)}
+    ${row('Alojamento', `${k.n} noite${k.n > 1 ? 's' : ''}, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}${k.stayEst ? ' · média de um quarto barato' : ' · preço visto no Booking'}`, k.stay)}
+    ${row('Aeroporto ↔ centro', `transporte público, ida e volta${k.ppl > 1 ? ', todos' : ''}`, k.xfer)}
+    ${row('Comida', `refeições simples, ${k.n} dia${k.n > 1 ? 's' : ''}${k.ppl > 1 ? ', todos' : ''}`, k.food)}
+    <div class="crow tot"><span>Total estimado${k.ppl > 1 ? `<small>${eur0(k.total / k.ppl)} por pessoa</small>` : ''}</span><b>${eur0(k.total)}</b></div>
+    <span class="note">Estimativa para uma viagem low-cost, com médias de cada país. Não inclui mala de cabine (conta com uns 20 a 40 € por trajeto, se precisares) nem visitas.</span></div>`;
+}
 function hotelHtml(it, P){
   const H = it.hotel, n = nightsOf(it), f = groupPrice(it, P), h = hotelPrice(it, P);
   return `<div class="hrow"><div><b>${esc(H.name)}<i class="src bk">Booking</i></b><span>${esc(H.type)} · nota ${String(H.rating).replace('.', ',')} · ${hotelSameDates(it) ? '' : '≈ '}${eur0(hotelP2(it))} por ${n} noite${n > 1 ? 's' : ''}, 2 pessoas num quarto</span></div><div class="hp"><a class="btn sm primary" href="${esc(hotelUrl(it, P))}" target="_blank" rel="noopener" data-out="booking">Ver</a></div></div>
@@ -404,6 +432,7 @@ function renderTab(){
         <div class="facts">${isDirect(it) ? '<span class="fact ok">Direto</span>' : ''}<span class="fact dim">Só mochila pequena incluída</span></div></div>
       <div class="sec"><h4>${icon('swap')}Comparar com outros sites</h4>
         ${compareHtml(it, P, L)}</div>
+      ${costHtml(it, P)}
       ${CFG.airhelp ? `<div class="sec"><h4>${icon('plane')}Se o voo atrasar ou for cancelado</h4>
         ${linkRow('Podes ter direito a até 600 € por pessoa', 'Pelas regras europeias, se chegares com mais de 3 horas de atraso, ou se o voo for cancelado em cima da hora. Podes pedir diretamente à companhia, de graça, ou deixar a AirHelp tratar de tudo (cobra uma parte só se ganhares).', CFG.airhelp, 'Ver na AirHelp', null)}</div>` : ''}`;
   } else if (sheetTab === 'stay'){
