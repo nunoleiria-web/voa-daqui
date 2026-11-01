@@ -1,0 +1,25 @@
+name: Teste Travelpayouts
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['tools/tp_test.py', '.github/workflows/tp-test.yml']
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/tp_test.py
+        env:
+          TP_TOKEN: ${{ secrets.TP_TOKEN }}
+      - name: Guardar relatorio no ramo tp-test
+        run: |
+          git config user.name "voa-daqui-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout --orphan tp-test
+          git rm -rq --cached .
+          git add -f tp/report.json
+          git commit -qm "Relatorio Travelpayouts"
+          git push -fq origin tp-test
