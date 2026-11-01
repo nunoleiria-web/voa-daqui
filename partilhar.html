@@ -35,35 +35,39 @@ textarea{width:100%;min-height:150px;font:15px/1.45 system-ui,sans-serif;padding
 .btn{font:700 .95rem "Schibsted Grotesk",sans-serif;padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;text-decoration:none}
 .btn.primary{background:var(--sun);border-color:var(--sun);color:#1f1600}
 .small{font-size:.85rem;color:var(--muted);margin:0}
+main{max-width:520px}
+.hero{display:grid;gap:10px}
+.btn.big{font-size:1.15rem;padding:16px;width:100%;border-radius:14px}
+details.card summary{cursor:pointer;font-weight:700}
+details.card[open] summary{margin-bottom:4px}
 .ok{color:#067251;font-weight:600}
 </style>
 </head>
 <body>
 <header class="hdr"><div class="in"><a class="logo" href="./"><i></i>Voa Daqui</a><span class="small" style="color:#a9bad3">Partilhar</span></div></header>
 <main>
-  <div>
-    <h1>Imagens para partilhar hoje</h1>
-    <p class="lead">Feitas na hora com os preços atuais do site. Escolhe, partilha no WhatsApp ou no Instagram, e cola o texto.</p>
+  <div class="hero">
+    <h1 id="title">Publicação de hoje</h1>
+    <p class="small" id="why">A preparar…</p>
+    <button type="button" class="btn primary big" id="share">Partilhar agora</button>
+    <p class="small" id="msg">Abre o WhatsApp, o Instagram ou outra app com a imagem pronta. O texto fica copiado: só tens de colar.</p>
   </div>
-  <div class="seg" id="kinds" role="group" aria-label="Tipo de publicação"></div>
-  <div class="seg" id="fmt" role="group" aria-label="Formato">
-    <button type="button" data-f="post" aria-pressed="true">Publicação (4:5)</button>
-    <button type="button" data-f="story" aria-pressed="false">Story / Estado (9:16)</button>
-  </div>
-  <div class="grid">
-    <canvas id="cv" width="1080" height="1350" aria-label="Pré-visualização da imagem"></canvas>
-    <div class="card">
-      <h2>Texto para acompanhar</h2>
-      <textarea id="cap" aria-label="Texto da publicação"></textarea>
-      <div class="btns">
-        <button type="button" class="btn primary" id="share">Partilhar imagem e texto</button>
-        <button type="button" class="btn" id="dl">Descarregar imagem</button>
-        <button type="button" class="btn" id="copy">Copiar texto</button>
-      </div>
-      <p class="small" id="msg">No telemóvel, "Partilhar" abre o WhatsApp, o Instagram e as outras apps. No Instagram o link no texto não é clicável: escreve "link na bio".</p>
-      <p class="small" id="when"></p>
+  <canvas id="cv" width="1080" height="1350" aria-label="Pré-visualização da imagem"></canvas>
+  <details class="card">
+    <summary>Escolher outra publicação ou mudar o texto</summary>
+    <div class="seg" id="kinds" role="group" aria-label="Tipo de publicação"></div>
+    <div class="seg" id="fmt" role="group" aria-label="Formato">
+      <button type="button" data-f="post" aria-pressed="true">Publicação (4:5)</button>
+      <button type="button" data-f="story" aria-pressed="false">Story / Estado (9:16)</button>
     </div>
-  </div>
+    <textarea id="cap" aria-label="Texto da publicação"></textarea>
+    <div class="btns">
+      <button type="button" class="btn" id="dl">Descarregar imagem</button>
+      <button type="button" class="btn" id="copy">Copiar texto</button>
+    </div>
+    <p class="small">No Instagram o link no texto não é clicável: escreve "link na bio".</p>
+    <p class="small" id="when"></p>
+  </details>
 </main>
 <script src="assets/core.js"></script>
 <script src="assets/landmarks.js"></script>
@@ -143,20 +147,20 @@ async function list(title1, title2, sub, rows, foot){
 function build(){
   const items = DATA.items.slice().sort((a, b) => bp(a) - bp(b)), K = [];
   const d = DATA.deal ? DATA.deal.item : items[0];
-  if (d) K.push({name: DATA.deal ? 'Pechincha do dia' : 'Mais barato de hoje', draw: () => trip(d, DATA.deal ? 'Pechincha do dia' : 'O mais barato hoje'),
+  if (d) K.push({id: 'deal', name: DATA.deal ? 'Pechincha do dia' : 'Mais barato de hoje', draw: () => trip(d, DATA.deal ? 'Pechincha do dia' : 'O mais barato hoje'),
     text: () => `${ORIGIN[d.o]} → ${city(d)} por ${eur0(bp(d))} ida e volta${DATA.deal ? ` (normalmente ${eur0(DATA.deal.base)})` : ''}\n${day(d.out.dep)} a ${day(d.in.dep)} · ${d.carrier}${d.out.stops === 0 && d.in.stops === 0 ? ', voo direto' : ''}\n\nVê aqui: ${SITE}#viagem=${encodeURIComponent(d.key)}\n\nPreço por pessoa, só com mochila pequena, visto a ${seen()}. Os preços mudam depressa.`});
   const top = dedupe(items).slice(0, 5);
   if (top.length >= 3){ const max = Math.max(...top.map(bp)), lim = Math.ceil((max + 1) / 5) * 5;
-    K.push({name: 'Top 5', draw: () => list(`${top.length} escapadinhas`, `abaixo de ${lim} €`, 'Ida e volta, por pessoa, a partir de Lisboa, Porto e Faro',
+    K.push({id: 'top', name: 'Top 5', draw: () => list(`${top.length} escapadinhas`, `abaixo de ${lim} €`, 'Ida e volta, por pessoa, a partir de Lisboa, Porto e Faro',
       top.map(x => ({a: `${ORIGIN[x.o]} → ${city(x)}`, b: `${day(x.out.dep)} → ${day(x.in.dep)} · ${nights(x)} noites`, p: eur0(bp(x))})), 'Guarda para não perderes'),
       text: () => `${top.length} escapadinhas abaixo de ${lim} € ida e volta:\n\n${top.map(x => `• ${ORIGIN[x.o]} → ${city(x)}: ${eur0(bp(x))} (${day(x.out.dep)} a ${day(x.in.dep)})`).join('\n')}\n\nTodas em ${SITE}\nPreços por pessoa, vistos a ${seen()}. Mudam depressa.`}); }
   const wk = dedupe((DATA.weekend || []).slice().sort((a, b) => a.price - b.price));
   if (wk.length){ const w = wk[0];
-    K.push({name: 'Fim de semana', draw: () => trip(w, 'Sem faltar ao trabalho', `Sexta às ${hm(w.out.dep)}, ${deO(w.o)} para`),
+    K.push({id: 'wk', name: 'Fim de semana', draw: () => trip(w, 'Sem faltar ao trabalho', `Sexta às ${hm(w.out.dep)}, ${deO(w.o)} para`),
       text: () => `Fim de semana fora sem gastar um dia de férias:\n${ORIGIN[w.o]} → ${city(w)} por ${eur0(w.price)} ida e volta\nSais ${day(w.out.dep)} às ${hm(w.out.dep)}, voltas ${day(w.in.dep)} às ${hm(w.in.dep)}\n\nVê aqui: ${SITE}#viagem=${encodeURIComponent(w.key)}\n\nMais fins de semana em ${SITE}\nPreço por pessoa, visto a ${seen()}.`}); }
   const P = (DATA.pontes || []).find(p => p.items && p.items.length);
   if (P){ const rows = dedupe(P.items).slice(0, 5), t = P.bridge ? `Ponte do ${P.name}` : `Fim de semana de ${P.name}`;
-    K.push({name: 'Ponte', draw: () => list(t, P.bridge ? `Tira 1 dia, ganhas ${P.days}` : `${P.days} dias sem trabalhar`, `${day(P.start + 'T12:00')} a ${day(P.end + 'T12:00')}`,
+    K.push({id: 'ponte', when: P.start, name: 'Ponte', draw: () => list(t, P.bridge ? `Tira 1 dia, ganhas ${P.days}` : `${P.days} dias sem trabalhar`, `${day(P.start + 'T12:00')} a ${day(P.end + 'T12:00')}`,
       rows.map(x => ({a: `${ORIGIN[x.o]} → ${city(x)}`, b: `${day(x.out.dep)} → ${day(x.in.dep)}`, p: eur0(x.price)})), 'Mais destinos em voadaqui.pt'),
       text: () => `${t}: ${day(P.start + 'T12:00')} a ${day(P.end + 'T12:00')}${P.bridge ? ` (pedes ${WD[new Date(P.bridge + 'T12:00').getDay()]} ${new Date(P.bridge + 'T12:00').getDate()})` : ''}\n\n${rows.map(x => `• ${ORIGIN[x.o]} → ${city(x)}: ${eur0(x.price)}`).join('\n')}\n\nTodos os voos: ${SITE}#ponte=${encodeURIComponent(P.id)}\nPreços por pessoa, vistos a ${seen()}.`}); }
   return K;
@@ -167,7 +171,17 @@ async function render(){
   const k = KINDS[kind]; if (!k) return;
   await k.draw(); $('cap').value = k.text();
 }
-function setKind(i){ kind = i; document.querySelectorAll('#kinds button').forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); render(); }
+// sugestão do dia: pechincha > segunda Top 5 > quinta/sexta fim de semana > quarta ponte próxima > o mais barato
+function pick(){
+  const wd = new Date().getDay(), at = id => KINDS.findIndex(k => k.id === id);
+  const pon = at('ponte'), soon = pon >= 0 && (new Date(KINDS[pon].when + 'T12:00') - Date.now()) / 864e5 <= 24;
+  if (DATA.deal && at('deal') >= 0) return [at('deal'), 'Hoje há Pechincha do dia: um preço muito abaixo do normal'];
+  if (wd === 1 && at('top') >= 0) return [at('top'), 'É segunda-feira: o Top 5 da semana'];
+  if ((wd === 4 || wd === 5) && at('wk') >= 0) return [at('wk'), 'Está a chegar o fim de semana: uma escapadinha sem faltar ao trabalho'];
+  if ((wd === 3 || wd === 0) && soon) return [pon, 'Está a chegar um feriado: a ponte com os voos mais baratos'];
+  return [0, 'O voo mais barato de hoje'];
+}
+function setKind(i){ kind = i; if (KINDS[i]) $('why').textContent = KINDS[i].name; document.querySelectorAll('#kinds button').forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); render(); }
 $('fmt').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; fmt = b.dataset.f; document.querySelectorAll('#fmt button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); });
 const blob = () => new Promise(r => cv.toBlob(r, 'image/png'));
 const fname = () => `voadaqui-${(KINDS[kind].name || 'post').toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[^\w-]/g, '')}-${fmt}.png`;
@@ -175,6 +189,7 @@ function say(t){ $('msg').innerHTML = `<span class="ok">${esc(t)}</span>`; }
 $('dl').addEventListener('click', async () => { const b = await blob(), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname(); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); });
 $('copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('cap').value); say('Texto copiado.'); } catch (e){ $('cap').select(); say('Seleciona o texto e copia.'); } });
 $('share').addEventListener('click', async () => {
+  if (!KINDS.length) return;
   const f = new File([await blob()], fname(), {type: 'image/png'});
   try { await navigator.clipboard.writeText($('cap').value); } catch (e){}
   if (navigator.canShare && navigator.canShare({files: [f]})){
@@ -187,7 +202,7 @@ Promise.all([fetch('data/data.json?v=' + Date.now()).then(r => r.json()), docume
   $('kinds').innerHTML = KINDS.map((k, i) => `<button type="button" aria-pressed="${i === 0}">${esc(k.name)}</button>`).join('');
   $('kinds').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setKind([...$('kinds').children].indexOf(b)); });
   const u = new Date(j.updated); $('when').textContent = `Preços da atualização de ${u.getDate()} ${MO[u.getMonth()]} às ${pad(u.getHours())}:${pad(u.getMinutes())}.`;
-  render();
+  const [i, why] = pick(); setKind(i); $('why').textContent = why;
 }).catch(() => { $('msg').textContent = 'Não foi possível carregar os preços. Recarrega a página.'; });
 </script>
 </body>
