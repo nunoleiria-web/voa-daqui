@@ -544,6 +544,7 @@ input:disabled{opacity:.45}
         <div class="field"><span class="lbl">Quanto tempo</span>
           <div class="chips scroll" data-group="trip">
             <button type="button" data-v="all" aria-pressed="true">Todas</button>
+            <button type="button" data-v="wk" aria-pressed="false">Sem faltar ao trabalho</button>
             <button type="button" data-v="2" aria-pressed="false">2 noites</button>
             <button type="button" data-v="3" aria-pressed="false">3 noites</button>
             <button type="button" data-v="4" aria-pressed="false">4 ou mais</button>
@@ -608,6 +609,7 @@ input:disabled{opacity:.45}
     <div class="summary" id="summary" hidden><svg class="ic"><use href="#i-search"/></svg><div><b id="sumT"></b><span id="sumS"></span></div><button type="button" class="btn sm" id="edit"><svg class="ic"><use href="#i-edit"/></svg>Alterar</button></div>
     <div class="stale" id="stale" hidden role="status"></div>
     <section class="deal quiet" id="dealBox" hidden aria-live="polite"></section>
+    <section class="pontes" id="fds" hidden aria-label="Fins de semana sem faltar ao trabalho"></section>
     <section class="pontes" id="pontes" hidden aria-label="Pontes e feriados"></section>
     <section id="out" aria-live="polite" class="view"></section>
   </section>

@@ -27,6 +27,22 @@ Uma tarefa agendada do Claude corre de hora a hora, das 7h às 23h (hora de Lisb
 
 3. **`python3 build.py rows.txt`**: valida as linhas, atualiza `data/history.json` e gera `data/data.json` (lista de voos + Pechincha do dia). Se der erro, corrigir `rows.txt` e repetir.
 
+3b. **Confirmar as descobertas da Travelpayouts (todas as horas).** Um programa no GitHub (`tools/tp_fetch.py`, de hora a hora) pergunta à API da Travelpayouts os voos mais baratos para mais de 100 destinos e guarda-os em `data/tp.json`. Esses preços podem ter até 2 dias, por isso nunca aparecem no site sem confirmação. O `build.py` mostra a lista "PARA CONFIRMAR" (`origem|destino|ida|volta`). Para cada linha (só as da primeira execução):
+   - ferramenta `search-flight` do Kiwi com `flyFrom` origem, `flyTo` destino, `departureDate` ida e `returnDate` volta (dd/mm/aaaa), `allow_self_transfer` false, `sort` price, `currency` EUR, `adults` 1;
+   - acrescentar ao fim de `extra.txt` (não apagar o que lá está) uma linha que começa pela hora atual de Lisboa e depois o voo mais barato no formato do `rows.txt`:
+     `2026-11-01T23:13|LIS|SVQ|Seville|Spain|38|2026-12-17T22:20|2026-12-18T00:25|0|65|2026-12-19T23:45|2026-12-19T23:55|0|70|Ryanair|https://kiwi.com/u/w5g82f`
+   - se o Kiwi não devolver nada: `2026-11-01T23:13|OPO|BGY|2026-12-11|2026-12-14|-`
+   - O `build.py` junta sozinho os voos de `extra.txt` (durante 6 horas) e não volta a pedir a mesma confirmação nesse tempo.
+
+3c. **Fins de semana sem faltar ao trabalho (às 7h, às 13h e às 18h).** Três pesquisas no Kiwi (`LIS`, `OPO`, `FAO`):
+   - `flyTo` anywhere, `departureDate` amanhã, `departureDateTo` amanhã + 58 dias
+   - `nights_in_dst_from` 2, `nights_in_dst_to` 2, `fly_days` "5", `ret_fly_days` "0", `dtime_from` 18
+   - `one_for_city` true, `allow_self_transfer` false, `sort` price, `currency` EUR, `adults` 1
+   - Escrever `fds.txt` (substitui o ficheiro todo), formato do `rows.txt`, com todos os resultados até 160 €. Se a pesquisa de uma origem falhar, mantém as linhas antigas dessa origem.
+   - Nas outras horas, `fds.txt` fica como está.
+
+   Depois de 3b e 3c, correr outra vez `python3 build.py rows.txt` (com `--leve` se for o caso) e usar a lista "PARA COMPARAR" desta última execução.
+
 4. **Comparar preços.** O `build.py` termina com a lista "PARA COMPARAR". Para cada linha:
    - `lastminute.com`: ferramenta `search_flights` do lastminute.com com `departure`, `arrival`, `start_date` (ida), `end_date` (volta), `max_results` 1, `adults` 1.
    - `eDreams`: ferramenta `search_flights` do eDreams com `origin`, `destination`, `departure_date`, `return_date`, `adults` 1, `market` pt-PT. Usar o primeiro itinerário (o mais barato).

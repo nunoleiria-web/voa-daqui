@@ -203,11 +203,46 @@ def parse_hotels(path, items):
 CITY_CODE = {'STN': 'LON', 'LTN': 'LON', 'LGW': 'LON', 'LHR': 'LON', 'SEN': 'LON', 'LCY': 'LON', 'BVA': 'PAR', 'ORY': 'PAR', 'CDG': 'PAR',
              'BGY': 'MIL', 'MXP': 'MIL', 'LIN': 'MIL', 'FCO': 'ROM', 'CIA': 'ROM', 'HHN': 'FRA', 'NRN': 'DUS', 'EIN': 'AMS', 'CRL': 'BRU',
              'GRO': 'BCN', 'REU': 'BCN', 'TFS': 'TCI', 'TFN': 'TCI', 'ARN': 'STO', 'NYO': 'STO', 'BMA': 'STO', 'GOT': 'GOT'}
-CONFIRM_TOP, CONFIRM_TOP_LIGHT = 8, 5   # quantos candidatos da Travelpayouts confirmar no Kiwi
+CONFIRM_TOP, CONFIRM_TOP_LIGHT = 6, 4   # quantos candidatos da Travelpayouts confirmar no Kiwi
 TP_MAX_AGE_H = 4
+EXTRA_KEEP_H = 6                        # um voo confirmado no Kiwi conta durante 6 horas
 
 
-def to_confirm(items, now, light=False):
+def read_extra(now):
+    """extra.txt: voos confirmados no Kiwi a partir da lista PARA CONFIRMAR.
+    Cada linha começa pela hora da confirmação: AAAA-MM-DDTHH:MM|<linha no formato do rows.txt>
+    ou, se o Kiwi não tinha voo nessas datas: AAAA-MM-DDTHH:MM|ORIGEM|DESTINO|ida|volta|-
+    Devolve (linhas válidas para juntar ao rows.txt, conjunto de pesquisas já feitas)."""
+    path = ROOT / 'extra.txt'
+    rows, done, keep = [], set(), []
+    if not path.exists():
+        return rows, done
+    naive = now.replace(tzinfo=None)
+    for line in path.read_text(encoding='utf-8').splitlines():
+        line = line.strip()
+        if not line or line.startswith('#') or '|' not in line:
+            continue
+        stamp, rest = line.split('|', 1)
+        try:
+            age = (naive - dt.datetime.fromisoformat(stamp)).total_seconds() / 3600
+        except ValueError:
+            continue
+        if age > 24:
+            continue
+        keep.append(line)
+        f = rest.split('|')
+        if len(f) == 5:
+            if age <= EXTRA_KEEP_H:
+                done.add((f[0], f[1], f[2], f[3]))
+        elif len(f) == 15:
+            if age <= EXTRA_KEEP_H:
+                done.add((f[0], f[1], f[5][:10], f[9][:10]))
+                rows.append(rest)
+    path.write_text('\n'.join(keep) + ('\n' if keep else ''), encoding='utf-8')   # limpa linhas com mais de 24 h
+    return rows, done
+
+
+def to_confirm(items, now, light=False, done=()):
     """Voos que a Travelpayouts viu mais baratos do que os nossos (ou ligações que não temos),
     e que entrariam na lista. A tarefa confirma-os no Kiwi.com nas datas indicadas."""
     path = ROOT / 'data' / 'tp.json'
@@ -229,7 +264,7 @@ def to_confirm(items, now, light=False):
     tomorrow = (now.date() + dt.timedelta(days=1)).isoformat()
     out = []
     for c in tp.get('cands', []):
-        if c['dep'] < tomorrow or c['o'] not in cap:
+        if c['dep'] < tomorrow or c['o'] not in cap or (c['o'], c['to'], c['dep'], c['ret']) in done:
             continue
         mine = min(ours.get((c['o'], c['city']), 10 ** 6), ours.get((c['o'], c['to']), 10 ** 6))
         if c['price'] >= mine - 2 or c['price'] > cap[c['o']]:
@@ -281,7 +316,17 @@ def main():
     light = '--leve' in sys.argv   # atualização de hora a hora: só lastminute nos 12 mais baratos
     if len(args) not in (1, 2):
         fail('uso: python3 build.py rows.txt [cmp.txt] [--leve]')
-    items = parse(args[0])
+    now0 = dt.datetime.now(dt.timezone.utc)
+    try:
+        import zoneinfo
+        now0 = dt.datetime.now(zoneinfo.ZoneInfo('Europe/Lisbon'))
+    except Exception:
+        pass
+    extra, done = read_extra(now0)
+    tmw = (now0.date() + dt.timedelta(days=1)).isoformat()
+    extra = [r for r in extra if r.split('|')[5][:10] >= tmw]
+    lines = Path(args[0]).read_text(encoding='utf-8').splitlines() + extra
+    items = parse(args[0], lines)
     ncmp = parse_cmp(args[1], items) if len(args) == 2 and Path(args[1]).exists() else 0
     nhot = parse_hotels(ROOT / 'hotels.txt', items) if (ROOT / 'hotels.txt').exists() else 0
     for it in items:
@@ -344,7 +389,9 @@ def main():
           (f"pechincha: {d['item']['o']} → {d['item']['city']} {d['item']['price']} € (normal {d['base']} €, −{round(d['off']*100)}%)" if d else 'sem pechincha hoje'))
     lm, ed = to_compare(items, deal, light)
     print(f'{nhot} destinos com alojamento · {len(weekend)} fins de semana sem faltar ao trabalho')
-    conf = to_confirm(items, now, light)
+    conf = to_confirm(items, now, light, done)
+    if extra:
+        print(f'{len(extra)} voos confirmados (extra.txt) juntos à lista')
     print('\nPARA CONFIRMAR (Kiwi, voo visto mais barato na Travelpayouts; origem|destino|ida|volta):')
     for c in conf:
         print(f"  {c['o']}|{c['to']}|{c['dep']}|{c['ret']}  (visto a {c['price']} €" + (f", nosso {c['ours']} €)" if c['ours'] else ", ligação nova)"))

@@ -175,6 +175,9 @@ const cityOf = it => pt(lastSeg(it).toCity || it.outbound.to).replace(/,.*$/, ''
 const countryEn = it => lastSeg(it).toCountry || '';
 const countryOf = it => { const c = countryEn(it); return COUNTRY[c] ?? c; };
 const nightsOf = it => it.inbound ? Math.max(1, Math.round((atNoon(it.inbound.departureTime) - atNoon(it.outbound.departureTime)) / 864e5)) : 0;
+// "Sem faltar ao trabalho": ida à sexta depois das 18h (ou ao sábado), volta ao sábado ou domingo e chega no mesmo dia
+const isWk = it => { const a = new Date(it.outbound.departureTime), b = new Date(it.inbound.departureTime), c = new Date(it.inbound.arrivalTime);
+  return ((a.getDay() === 5 && a.getHours() >= 18) || a.getDay() === 6) && [6, 0].includes(b.getDay()) && c.toDateString() === b.toDateString() && (b - a) < 3 * 864e5; };
 const totalDur = it => (it.outbound.durationSeconds || 0) + (it.inbound ? it.inbound.durationSeconds || 0 : 0);
 const isDirect = it => it.outbound.stops === 0 && (!it.inbound || it.inbound.stops === 0);
 const airlinesOf = it => [...new Set([...it.outbound.segments, ...it.inbound.segments].map(s => s.carrierName))].join(', ');
@@ -230,8 +233,8 @@ function matchDest(it){
   return list.includes(code) || list.includes(cc);
 }
 const summaryText = () => `${sel.from === 'both' ? 'De Lisboa, Porto e Faro' : sel.from === 'OPO' ? 'Do Porto' : 'De ' + ORIGIN[sel.from]} · ${paxText()}`;
-const collapse = (title, sub) => { if (!(history.state && history.state.results)) pushNav({results: 1}); $('form').hidden = true; $('band').hidden = true; $('dealBox').hidden = true; $('pontes').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
-function goHome(){ $('form').hidden = false; $('band').hidden = false; $('summary').hidden = true; renderDeal(); renderPontes(); if (!ctx || !ctx.home) showDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); }
+const collapse = (title, sub) => { if (!(history.state && history.state.results)) pushNav({results: 1}); $('form').hidden = true; $('band').hidden = true; $('dealBox').hidden = true; $('pontes').hidden = true; $('fds').hidden = true; $('summary').hidden = false; $('sumT').textContent = title; $('sumS').textContent = sub; window.scrollTo({top: 0}); };
+function goHome(){ $('form').hidden = false; $('band').hidden = false; $('summary').hidden = true; renderDeal(); renderFds(); renderPontes(); if (!ctx || !ctx.home) showDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); }
 $('edit').addEventListener('click', () => { if (history.state && history.state.results) history.back(); else goHome(); });
 function showErr(msg){ $('out').innerHTML = `<div class="state err"><b>${esc(msg)}</b></div>`; }
 $('go').addEventListener('click', search);
@@ -250,7 +253,7 @@ function search(){
     const dep = isoDay(it.outbound.departureTime), n = nightsOf(it);
     if (sel.from !== 'both' && it.outbound.from !== sel.from) return false;
     if (dep < lo || dep > hi) return false;
-    if (sel.trip !== 'all' && (sel.trip === '4' ? n < 4 : n !== +sel.trip)) return false;
+    if (sel.trip === 'wk' ? !isWk(it) : sel.trip !== 'all' && (sel.trip === '4' ? n < 4 : n !== +sel.trip)) return false;
     if (!matchDest(it)) return false;
     if (o.direct && !isDirect(it)) return false;
     if (o.noDawn && (+fmtHM(it.outbound.departureTime).slice(0, 2) < 7 || +fmtHM(it.inbound.departureTime).slice(0, 2) < 7)) return false;
@@ -607,6 +610,44 @@ function liveSearch(){
     </section>`;
 }
 
+// ---------- fins de semana sem faltar ao trabalho ----------
+const wkList = () => ALL.filter(isWk);
+const friOf = it => { const d = atNoon(it.outbound.departureTime); if (d.getDay() === 6) d.setDate(d.getDate() - 1); return isoLocal(d); };
+function renderFds(){
+  const box = $('fds'), L = DATA ? wkList() : [];
+  if (L.length < 3 || $('form').hidden){ box.hidden = true; return; }
+  const by = new Map();
+  for (const it of L){ const k = friOf(it); if (!by.has(k)) by.set(k, []); by.get(k).push(it); }
+  const minOf = k => Math.min(...by.get(k).map(it => bestOf(it).p));
+  const weeks = [...by.keys()].sort((a, b) => minOf(a) - minOf(b)).slice(0, 4).sort();   // os 4 fins de semana mais baratos, por data
+  const card = k => { const its = by.get(k).sort((a, b) => bestOf(a).p - bestOf(b).p), seen = new Set();
+    const top = its.filter(it => { const c = cityOf(it); if (seen.has(c)) return false; seen.add(c); return true; }).slice(0, 3);
+    const f = atNoon(k + 'T12:00'), su = new Date(f); su.setDate(f.getDate() + 2);
+    return `<article class="ponte"><header><h3>Sexta ${f.getDate()} a domingo ${su.getDate()}</h3><span>${esc(MONTHS[f.getMonth()])}${su.getMonth() !== f.getMonth() ? ' / ' + esc(MONTHS[su.getMonth()]) : ''}</span><em>Sem tirar férias</em></header>
+      <ol>${top.map(it => `<li><button type="button" data-wk="${esc(it.key)}"><span><b>${esc(cityOf(it))}</b><small>${esc(deO(it.outbound.from))}, sai ${WDL[new Date(it.outbound.departureTime).getDay()].replace('-feira', '')} às ${fmtHM(it.outbound.departureTime)}</small></span><i>${eur0(bestOf(it).p)}</i></button></li>`).join('')}</ol>
+      ${its.length > 3 ? `<button type="button" class="btn sm" data-wkall="${k}">Ver os ${its.length} voos</button>` : ''}</article>`; };
+  box.hidden = false;
+  box.innerHTML = `<div class="sechead"><h2>Fins de semana sem faltar ao trabalho</h2><p>Sais à sexta depois das 18h e voltas no domingo. Não gastas nenhum dia de férias.</p></div>
+    <div class="pgrid">${weeks.map(card).join('')}</div>`;
+}
+$('fds').addEventListener('click', e => {
+  const b = e.target.closest('[data-wk]'), a = e.target.closest('[data-wkall]');
+  if (b){ const it = ALL.find(x => x.key === b.dataset.wk); if (it) openTripFor(it, group()); return; }
+  if (a) openFds(a.dataset.wkall);
+});
+function openFds(fri){
+  const P = group();
+  current = wkList().filter(it => (!fri || friOf(it) === fri) && (sel.from === 'both' || it.outbound.from === sel.from));
+  const best = new Map(); for (const it of current){ const k = it.outbound.from + cityOf(it); if (!best.has(k) || bestOf(best.get(k)).p > bestOf(it).p) best.set(k, it); }
+  current = [...best.values()];
+  const f = fri && atNoon(fri + 'T12:00'), title = fri ? `Fim de semana de ${f.getDate()} de ${MONTHS[f.getMonth()]}` : 'Fins de semana sem faltar ao trabalho';
+  ctx = {P, o: opts(), mode: 'explore', budget: 0, label: title, wk: {title}};
+  sortBy = 'price';
+  collapse(title, `Sexta depois das 18h a domingo · ${summaryText()}`);
+  if (!current.length){ $('out').innerHTML = '<div class="state"><b>Sem voos desta origem para este fim de semana.</b><span>Escolhe "Todos" em "De onde".</span></div>'; return; }
+  renderResults();
+}
+
 // ---------- pontes e feriados ----------
 const WDL = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 const ponteTitle = p => p.bridge ? `Ponte do ${p.name}` : p.name === 'Páscoa' ? 'Fim de semana da Páscoa' : `Fim de semana de ${p.name}`;
@@ -695,7 +736,7 @@ function openFromHash(){
   const h = decodeURIComponent(location.hash.slice(1)); if (!h) return;
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e){}
   if (h.startsWith('viagem=')){
-    const k = h.slice(7), x = DATA.items.find(i => i.key === k) || (DATA.pontes || []).flatMap(p => p.items || []).find(i => i.key === k);
+    const k = h.slice(7), x = DATA.items.concat(DATA.weekend || []).find(i => i.key === k) || (DATA.pontes || []).flatMap(p => p.items || []).find(i => i.key === k);
     if (x) openTripFor(toIt(x), group()); else toast('Essa viagem já não está entre as mais baratas de hoje. Vê as de agora.');
   } else if (h.startsWith('ponte=')){ if (!openPonte(h.slice(6))) toast('Essa ponte já não tem voos guardados.'); }
 }
@@ -706,10 +747,10 @@ $('go').disabled = true; $('goTxt').textContent = 'A carregar os preços…';
 fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => {
   // tira voos que partem nas próximas 3 horas ou que já partiram (se as atualizações pararem)
   const cut = new Date(Date.now() + 3 * 36e5), keep = x => new Date(x.out.dep + ':00') > cut;
-  j.items = j.items.filter(keep); (j.pontes || []).forEach(p => { p.items = (p.items || []).filter(keep); });
-  DATA = j; ALL = j.items.map(toIt);
+  j.items = j.items.filter(keep); j.weekend = (j.weekend || []).filter(keep); (j.pontes || []).forEach(p => { p.items = (p.items || []).filter(keep); });
+  DATA = j; ALL = j.items.concat(j.weekend).map(toIt);
   $('go').disabled = false; $('goTxt').textContent = mode === 'live' ? 'Pesquisar voos' : 'Procurar voos';
   const u = new Date(j.updated);
   $('foot').textContent = `Preços por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
-  renderDeal(); renderPontes(); renderBoard(); showDefault(); drawList(); checkStale(); openFromHash();
+  renderDeal(); renderFds(); renderPontes(); renderBoard(); showDefault(); drawList(); checkStale(); openFromHash();
 }).catch(() => { $('goTxt').textContent = 'Não foi possível carregar os preços'; showErr('Não foi possível carregar os voos. Tenta recarregar a página daqui a pouco.'); });
