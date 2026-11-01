@@ -1,7 +1,7 @@
 name: Descoberta Travelpayouts
 on:
   schedule:
-    - cron: '47 6-22 * * *'   # de hora a hora (UTC), antes da atualização do site
+    - cron: '47 5-22 * * *'   # de hora a hora (UTC), uns 25 minutos antes de cada atualização do site
   workflow_dispatch:
   push:
     branches: [main]
