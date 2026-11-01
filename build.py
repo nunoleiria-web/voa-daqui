@@ -292,6 +292,28 @@ def parse_weekend(path):
     return sorted(keep, key=lambda i: i['price'])
 
 
+PH_MIN_DAYS = 10   # dias de histórico antes de mostrar "este preço é bom?"
+
+
+def price_history(items, hist_prev, today):
+    """Etiqueta de cada voo face ao histórico (Kiwi; se faltar, Travelpayouts): mais baixo em 30 dias, abaixo do normal, normal ou acima."""
+    tp_path = ROOT / 'data' / 'tp_hist.json'
+    tp = json.loads(tp_path.read_text()) if tp_path.exists() else {}
+    cut = (dt.date.fromisoformat(today) - dt.timedelta(days=30)).isoformat()
+    for it in items:
+        ser = {h['d']: h['routes'][it['key']] for h in hist_prev if h['d'] >= cut and it['key'] in h['routes']}
+        tser = tp.get(f"{it['o']}|{CITY_CODE.get(it['to'], it['to'])}") or tp.get(f"{it['o']}|{it['to']}") or {}
+        for d, p in tser.items():
+            if cut <= d < today and d not in ser:
+                ser[d] = p
+        if len(ser) < PH_MIN_DAYS:
+            continue
+        vals = [ser[d] for d in sorted(ser)]
+        med, lo, p = statistics.median(vals), min(vals), it['price']
+        tag = 'low' if p <= lo and p < med else 'good' if p <= med * 0.85 else 'high' if p >= med * 1.15 else 'normal'
+        it['ph'] = {'tag': tag, 'med': round(med), 'min': round(lo), 'n': len(vals), 's': vals[-30:]}
+
+
 def best_price(it):
     ps = [it['price']] + [c['p'] for c in it.get('cmp', {}).values()]
     return min(ps)
@@ -374,6 +396,7 @@ def main():
     hist.append({'d': today, 'routes': {it['key']: it['price'] for it in items}, 'max': maxes})  # histórico sempre com o preço do Kiwi, para comparar igual com igual
     hist = sorted(hist, key=lambda h: h['d'])[-KEEP_DAYS:]
 
+    price_history(items, prev, today)
     plist = attach_pontes(now.date(), ROOT / 'pontes.txt')
     tomorrow = (now.date() + dt.timedelta(days=1)).isoformat()
     weekend = [w for w in parse_weekend(ROOT / 'fds.txt') if w['out']['dep'][:10] >= tomorrow]

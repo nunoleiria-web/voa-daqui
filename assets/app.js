@@ -164,7 +164,7 @@ const CITY_CODE = {STN:'LON', LTN:'LON', LGW:'LON', LHR:'LON', SEN:'LON', BVA:'P
 function toIt(x){
   const cars = x.carrier.split(' + '), seg = (from, to, car, fromCity, toCity, fromC, toC) => ({from, to, carrier: car, carrierName: car, fromCity, toCity, fromCountry: fromC, toCountry: toC});
   const oc = {LIS:'Lisbon', OPO:'Porto', FAO:'Faro'}[x.o];
-  return {price: x.price, bookingUrl: x.url, baggage: {personalItem: 1, cabinBag: 0, checkedBag: 0}, key: x.key, cmp: x.cmp || {}, hotel: x.hotel || null,
+  return {price: x.price, bookingUrl: x.url, baggage: {personalItem: 1, cabinBag: 0, checkedBag: 0}, key: x.key, cmp: x.cmp || {}, hotel: x.hotel || null, ph: x.ph || null,
     outbound: {from: x.o, to: x.to, departureTime: x.out.dep + ':00', arrivalTime: x.out.arr + ':00', durationSeconds: (x.out.min || 0) * 60, stops: x.out.stops, route: [x.o, x.to], segments: [seg(x.o, x.to, cars[0], oc, x.city, 'Portugal', x.country)]},
     inbound: {from: x.to, to: x.o, departureTime: x.in.dep + ':00', arrivalTime: x.in.arr + ':00', durationSeconds: (x.in.min || 0) * 60, stops: x.in.stops, route: [x.to, x.o], segments: [seg(x.to, x.o, cars[1] || cars[0], x.city, oc, x.country, 'Portugal')]}};
 }
@@ -310,6 +310,7 @@ function card(i, x = {}){
   const perTxt = pack ? `voo + hotel, ${paxLabel(P)}` : P.payers > 1 ? `${eur0(b.p)} por pessoa` : 'ida e volta';
   const facts = [`<span class="fact">${esc(fmtShort(it.outbound.departureTime))} → ${esc(fmtShort(it.inbound.departureTime))}</span>`,
     isDirect(it) ? '<span class="fact ok">Direto</span>' : '<span class="fact dim">Com escala</span>', cheaperElsewhere(it),
+    it.ph && it.ph.tag === 'low' ? '<span class="fact ok">Mais baixo em 30 dias</span>' : it.ph && it.ph.tag === 'good' ? '<span class="fact ok">Abaixo do normal</span>' : '',
     (() => { const k = !pack && costOf(it, P); return k ? `<span class="fact dim" title="Voo, alojamento, transporte do aeroporto e comida (estimativa)">Tudo incluído ≈ ${eur0(k.total)}</span>` : ''; })()].join('');
   const saved = listUrls().has(it.bookingUrl);
   return `<article class="dcard ${x.feat ? 'feat' : ''}" data-open="${i}">
@@ -408,6 +409,20 @@ function costOf(it, P){
   const xfer = (XFER[it.outbound.to] ?? XFER[CITY_CODE[it.outbound.to]] ?? 8) * 2 * ppl, food = FOOD[c] * n * ppl;
   return {flight, stay, stayEst: !it.hotel, xfer, food, total: flight + stay + xfer + food, ppl, n};
 }
+// ---------- este preço é bom? ----------
+function phHtml(it){
+  const h = it.ph; if (!h) return '';
+  const msg = {low: `É o preço mais baixo dos últimos 30 dias nesta ligação. O normal é ${eur0(h.med)}.`,
+    good: `Está abaixo do normal para esta ligação: costuma andar pelos ${eur0(h.med)} (o mais baixo foi ${eur0(h.min)}).`,
+    normal: `Está dentro do normal para esta ligação, que costuma andar pelos ${eur0(h.med)}.`,
+    high: `Está acima do normal (costuma andar pelos ${eur0(h.med)}). Se puderes esperar, pode descer.`}[h.tag];
+  const v = h.s.concat([it.price]), W = 300, H = 56, mx = Math.max(...v), mn = Math.min(...v), sp = Math.max(1, mx - mn);
+  const pts = v.map((p, i) => `${(i / (v.length - 1) * W).toFixed(1)},${(H - 6 - (p - mn) / sp * (H - 12)).toFixed(1)}`);
+  const last = pts[pts.length - 1].split(',');
+  return `<div class="sec ph"><h4>${icon('swap')}Este preço é bom?</h4><p class="phmsg ${h.tag}">${msg}</p>
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Preço mais baixo de cada dia nos últimos ${h.n} dias, de ${eur0(mn)} a ${eur0(mx)}"><polyline points="${pts.join(' ')}" fill="none" stroke="var(--blue)" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="4" fill="var(--sun)" stroke="var(--ink)" stroke-width="1"/></svg>
+    <span class="note">Preço mais baixo visto em cada um dos últimos ${h.n} dias, por pessoa. O ponto amarelo é o de hoje.</span></div>`;
+}
 function costHtml(it, P){
   const k = costOf(it, P); if (!k) return '';
   const row = (a, b, v) => `<div class="crow"><span>${a}${b ? `<small>${b}</small>` : ''}</span><b>${eur0(v)}</b></div>`;
@@ -432,6 +447,7 @@ function renderTab(){
         <div class="facts">${isDirect(it) ? '<span class="fact ok">Direto</span>' : ''}<span class="fact dim">Só mochila pequena incluída</span></div></div>
       <div class="sec"><h4>${icon('swap')}Comparar com outros sites</h4>
         ${compareHtml(it, P, L)}</div>
+      ${phHtml(it)}
       ${costHtml(it, P)}
       ${CFG.airhelp ? `<div class="sec"><h4>${icon('plane')}Se o voo atrasar ou for cancelado</h4>
         ${linkRow('Podes ter direito a até 600 € por pessoa', 'Pelas regras europeias, se chegares com mais de 3 horas de atraso, ou se o voo for cancelado em cima da hora. Podes pedir diretamente à companhia, de graça, ou deixar a AirHelp tratar de tudo (cobra uma parte só se ganhares).', CFG.airhelp, 'Ver na AirHelp', null)}</div>` : ''}`;
