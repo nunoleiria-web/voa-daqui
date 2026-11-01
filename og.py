@@ -51,7 +51,7 @@ li{{display:flex;align-items:baseline;gap:20px;font-size:58px;font-weight:800}} 
 li em{{font-style:normal;color:#ffbe2e;margin-left:auto}}
 .foot{{position:relative;z-index:1;font-size:28px;color:#c9d1e4}}
 </style></head><body><div class="brand">Voa <i>Daqui</i></div><main>{body}</main>
-<div class="foot">Voos baratos de Lisboa, Porto e Faro · atualizados de hora a hora</div></body></html>"""
+<div class="foot">Voos baratos de Lisboa, Porto e Faro · atualizados três vezes por dia</div></body></html>"""
 
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:

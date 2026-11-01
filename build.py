@@ -313,7 +313,7 @@ def to_compare(items, deal, light=False):
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
-    light = '--leve' in sys.argv   # atualização de hora a hora: só lastminute nos 12 mais baratos
+    light = '--leve' in sys.argv   # atualizações das 13h e 19h: só lastminute nos 12 mais baratos
     if len(args) not in (1, 2):
         fail('uso: python3 build.py rows.txt [cmp.txt] [--leve]')
     now0 = dt.datetime.now(dt.timezone.utc)

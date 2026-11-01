@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Descoberta de voos baratos com a API de dados da Travelpayouts (Aviasales).
 
-Corre de hora a hora no GitHub Actions (.github/workflows/tp-fetch.yml).
+Corre no GitHub Actions antes de cada atualização do site (.github/workflows/tp-fetch.yml).
 O token vem do segredo TP_TOKEN e nunca é escrito em lado nenhum.
 
 Gera:
   data/tp.json       candidatos: o voo de ida e volta mais barato por ligação (2 a 4 noites,
                      partida entre amanhã e daqui a 58 dias). O site NÃO os mostra diretamente:
-                     a tarefa de hora a hora confirma os melhores no Kiwi.com (build.py, "PARA CONFIRMAR").
+                     a tarefa agendada confirma os melhores no Kiwi.com (build.py, "PARA CONFIRMAR").
   data/tp_hist.json  preço mais baixo visto por ligação e por dia (para saber se um preço é bom).
 """
 import json, os, sys, time, datetime as dt, urllib.request, urllib.parse

@@ -1,5 +1,5 @@
 // Voa Daqui · versão pública (GitHub Pages)
-// Lê data/data.json, gerado de hora a hora a partir do Kiwi.com (ver UPDATE.md).
+// Lê data/data.json, gerado três vezes por dia a partir do Kiwi.com (ver UPDATE.md).
 
 // ---------- theme ----------
 const THEME_KEY = 'voa-daqui-theme';
@@ -727,7 +727,7 @@ document.addEventListener('click', e => {
 // ---------- preços desatualizados ----------
 function checkStale(){
   const age = (Date.now() - new Date(DATA.updated)) / 36e5, h = new Date().getHours();
-  const stale = age > 10 || (age > 3 && h >= 9);   // de noite não há atualizações (23h às 7h)
+  const stale = age > 13 || (age > 7.5 && h >= 8);   // atualizações às 7h, 13h e 19h; de noite não há
   $('stale').hidden = !stale;
   if (stale) $('stale').innerHTML = `<span><b>Preços de há ${age < 48 ? Math.round(age) + ' horas' : Math.round(age / 24) + ' dias'}.</b> As atualizações automáticas estão atrasadas, por isso os preços podem já ter mudado. Confirma sempre no site da reserva.</span>`;
 }
@@ -751,6 +751,6 @@ fetch('data/data.json?v=' + Date.now()).then(r => { if (!r.ok) throw new Error(r
   DATA = j; ALL = j.items.concat(j.weekend).map(toIt);
   $('go').disabled = false; $('goTxt').textContent = mode === 'live' ? 'Pesquisar voos' : 'Procurar voos';
   const u = new Date(j.updated);
-  $('foot').textContent = `Preços por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados de hora a hora, das 7h às 23h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
+  $('foot').textContent = `Preços por pessoa, ida e volta, só com mochila pequena, vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())}. Atualizados três vezes por dia, às 7h, 13h e 19h. Mudam a toda a hora: confirma sempre o preço final antes de pagar. As imagens são ilustrações.`;
   renderDeal(); renderFds(); renderPontes(); renderBoard(); showDefault(); drawList(); checkStale(); openFromHash();
 }).catch(() => { $('goTxt').textContent = 'Não foi possível carregar os preços'; showErr('Não foi possível carregar os voos. Tenta recarregar a página daqui a pouco.'); });
