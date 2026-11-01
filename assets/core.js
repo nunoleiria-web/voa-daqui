@@ -28,6 +28,7 @@ function rng(seed){ let a = seed || 1; return () => { a = (a + 0x6D2B79F5) | 0; 
 function kindOf(code, country){ if (DESERT_C.has(country)) return 'desert'; if (ISLAND.has(code)) return 'island'; if (BEACH.has(code)) return 'beach'; if (SNOW.has(code)) return 'snow'; return 'city'; }
 let artN = 0;
 function art(code, country, H = 200){
+  if (window.artLandmark){ const svg = window.artLandmark(code, country); if (svg) return svg; }
   const W = 400, k = kindOf(code, country), R = rng(hash(code + 'v2')), id = 'a' + (++artN);
   const DUSK = [205, 218, 232, 248, 262, 278, 300, 322, 340, 350];
   const warm = k === 'desert' || k === 'beach' || k === 'island';
