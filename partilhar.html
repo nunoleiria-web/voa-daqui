@@ -39,6 +39,12 @@ main{max-width:520px}
 .hero{display:grid;gap:10px}
 .btn.big{font-size:1.15rem;padding:16px;width:100%;border-radius:14px}
 details.card summary{cursor:pointer;font-weight:700}
+.week{display:grid;gap:8px}
+.day{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center;text-align:left;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:inherit;cursor:pointer}
+.day img{width:64px;border-radius:8px;display:block}
+.day b{display:block}
+.day small{display:block;font-size:.8rem;color:var(--muted);line-height:1.35}
+.day.today{border:2px solid var(--blue);background:var(--bg)}
 details.card[open] summary{margin-bottom:4px}
 .ok{color:#067251;font-weight:600}
 </style>
@@ -53,6 +59,9 @@ details.card[open] summary{margin-bottom:4px}
     <p class="small" id="msg">Abre o WhatsApp, o Instagram ou outra app com a imagem pronta. O texto fica copiado: só tens de colar.</p>
   </div>
   <canvas id="cv" width="1080" height="1350" aria-label="Pré-visualização da imagem"></canvas>
+  <section class="card"><h2 style="margin:0">O que publicar em cada dia</h2>
+    <p class="small">Uma publicação por dia, à mesma hora (por volta das 7h30, depois da atualização dos preços). Carrega num dia para a preparar.</p>
+    <div class="week" id="week"></div></section>
   <details class="card">
     <summary>Escolher outra publicação ou mudar o texto</summary>
     <div class="seg" id="kinds" role="group" aria-label="Tipo de publicação"></div>
@@ -75,7 +84,7 @@ details.card[open] summary{margin-bottom:4px}
 const SITE = 'https://voadaqui.pt/';
 const NAVY = '#0a2540', NAVY2 = '#123a63', DIM = '#a9bad3', SUN = '#ffc72c', SUN_INK = '#1f1600', FONT = '"Schibsted Grotesk", system-ui, sans-serif';
 const cv = $('cv'), ctx = cv.getContext('2d');
-let DATA = null, KINDS = [], kind = 0, fmt = 'post', W = 1080, H = 1350;
+let DATA = null, CASA = null, KINDS = [], kind = 0, fmt = 'post', W = 1080, H = 1350;
 const city = x => pt(x.city).replace(/,.*$/, '');
 const day = iso => { const d = new Date(iso.slice(0, 10) + 'T12:00'); return `${WD[d.getDay()]} ${d.getDate()} ${MO[d.getMonth()]}`; };
 const hm = iso => iso.slice(11, 16);
@@ -163,6 +172,13 @@ function build(){
     K.push({id: 'ponte', when: P.start, name: 'Ponte', draw: () => list(t, P.bridge ? `Tira 1 dia, ganhas ${P.days}` : `${P.days} dias sem trabalhar`, `${day(P.start + 'T12:00')} a ${day(P.end + 'T12:00')}`,
       rows.map(x => ({a: `${ORIGIN[x.o]} → ${city(x)}`, b: `${day(x.out.dep)} → ${day(x.in.dep)}`, p: eur0(x.price)})), 'Mais destinos em voadaqui.pt'),
       text: () => `${t}: ${day(P.start + 'T12:00')} a ${day(P.end + 'T12:00')}${P.bridge ? ` (pedes ${WD[new Date(P.bridge + 'T12:00').getDay()]} ${new Date(P.bridge + 'T12:00').getDate()})` : ''}\n\n${rows.map(x => `• ${ORIGIN[x.o]} → ${city(x)}: ${eur0(x.price)}`).join('\n')}\n\nTodos os voos: ${SITE}#ponte=${encodeURIComponent(P.id)}\nPreços por pessoa, vistos a ${seen()}.`}); }
+  if (CASA && CASA.rows){ const xm = r => { const a = r.dep.slice(5, 10), b = r.ret.slice(5, 10); return a >= '12-12' && a <= '12-26' && (b >= '12-24' || r.ret.slice(0, 4) > r.dep.slice(0, 4)); };
+    const natal = new Date() < new Date(new Date().getFullYear() + '-12-20T12:00');
+    const pool = CASA.rows.filter(r => !natal || xm(r)).sort((a, b) => a.p - b.p), seenO = new Set(), rows = pool.filter(r => { if (seenO.has(r.o)) return false; seenO.add(r.o); return true; }).slice(0, 5);
+    const CN = {PAR:'Paris',LYS:'Lyon',BOD:'Bordéus',TLS:'Toulouse',MRS:'Marselha',NCE:'Nice',LON:'Londres',MAN:'Manchester',GVA:'Genebra',ZRH:'Zurique',BSL:'Basileia',LUX:'Luxemburgo',BRU:'Bruxelas',FRA:'Frankfurt',DUS:'Düsseldorf',AMS:'Amesterdão'}, DN = {LIS:'Lisboa',OPO:'Porto',FAO:'Faro',FNC:'Madeira',PDL:'Açores'};
+    if (rows.length >= 3) K.push({id: 'casa', name: 'Voltar a casa', draw: () => list('Voltar a casa', natal ? 'no Natal' : 'para Portugal', 'Para quem vive lá fora: ida e volta, por pessoa',
+      rows.map(r => ({a: `${CN[r.o]} → ${DN[r.to]}`, b: `${day(r.dep)} → ${day(r.ret)} · ${r.n} noites`, p: eur0(r.p)})), 'Mais cidades em voadaqui.pt'),
+      text: () => `Voltar a casa${natal ? ' no Natal' : ''}: voos baratos para Portugal\n\n${rows.map(r => `• ${CN[r.o]} → ${DN[r.to]}: ${eur0(r.p)} (${day(r.dep)} a ${day(r.ret)})`).join('\n')}\n\nEscolhe a tua cidade: ${SITE}casa.html\nPreços por pessoa, ida e volta, vistos nos últimos dias por outros viajantes. Confirma antes de comprar: no Natal esgotam depressa.`}); }
   return K;
 }
 
@@ -171,18 +187,37 @@ async function render(){
   const k = KINDS[kind]; if (!k) return;
   await k.draw(); $('cap').value = k.text();
 }
-// sugestão do dia: pechincha > segunda Top 5 > quinta/sexta fim de semana > quarta ponte próxima > o mais barato
-function pick(){
-  const wd = new Date().getDay(), at = id => KINDS.findIndex(k => k.id === id);
-  const pon = at('ponte'), soon = pon >= 0 && (new Date(KINDS[pon].when + 'T12:00') - Date.now()) / 864e5 <= 24;
-  if (DATA.deal && at('deal') >= 0) return [at('deal'), 'Hoje há Pechincha do dia: um preço muito abaixo do normal'];
-  if (wd === 1 && at('top') >= 0) return [at('top'), 'É segunda-feira: o Top 5 da semana'];
-  if ((wd === 4 || wd === 5) && at('wk') >= 0) return [at('wk'), 'Está a chegar o fim de semana: uma escapadinha sem faltar ao trabalho'];
-  if ((wd === 3 || wd === 0) && soon) return [pon, 'Está a chegar um feriado: a ponte com os voos mais baratos'];
-  return [0, 'O voo mais barato de hoje'];
+// plano da semana: o que publicar em cada dia (0 = domingo). Se houver Pechincha do dia, publica-a primeiro.
+const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const PLAN = [
+  {ids: ['ponte', 'top'], fmt: 'post', why: 'Domingo: planear. A próxima ponte, ou o Top 5 se não houver feriado perto'},
+  {ids: ['top'], fmt: 'post', why: 'Segunda: o Top 5 da semana, para guardar'},
+  {ids: ['deal'], fmt: 'post', why: 'Terça: o voo mais barato de hoje'},
+  {ids: ['ponte', 'deal'], fmt: 'post', why: 'Quarta: a ponte do próximo feriado, ou o mais barato de hoje'},
+  {ids: ['wk', 'deal'], fmt: 'post', why: 'Quinta: um fim de semana fora sem faltar ao trabalho'},
+  {ids: ['wk', 'deal'], fmt: 'story', why: 'Sexta: o mesmo fim de semana, em story e no estado do WhatsApp'},
+  {ids: ['casa', 'deal'], fmt: 'post', why: 'Sábado: voltar a casa, para quem vive lá fora (partilha também nos grupos de emigrantes)'}];
+function planFor(wd){
+  const at = id => KINDS.findIndex(k => k.id === id && (id !== 'ponte' || (new Date(k.when + 'T12:00') - Date.now()) / 864e5 <= 28));
+  const p = PLAN[wd]; let i = -1; for (const id of p.ids){ i = at(id); if (i >= 0) break; }
+  return [Math.max(0, i), p.why, p.fmt];
 }
+function pick(){
+  if (DATA.deal) return [KINDS.findIndex(k => k.id === 'deal'), 'Hoje há Pechincha do dia: publica-a primeiro', 'post'];
+  return planFor(new Date().getDay());
+}
+function setFmt(f){ fmt = f; document.querySelectorAll('#fmt button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.f === f))); }
 function setKind(i){ kind = i; if (KINDS[i]) $('why').textContent = KINDS[i].name; document.querySelectorAll('#kinds button').forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); render(); }
-$('fmt').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; fmt = b.dataset.f; document.querySelectorAll('#fmt button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); });
+$('fmt').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; setFmt(b.dataset.f); render(); });
+async function drawWeek(){
+  const thumbs = {}, td = new Date().getDay(), small = document.createElement('canvas');
+  for (let k = 0; k < 7; k++){ const [i, , f] = planFor(k), key = i + f; if (thumbs[key]) continue;
+    setFmt(f); H = f === 'story' ? 1920 : 1350; cv.width = W; cv.height = H; await KINDS[i].draw();
+    small.width = 216; small.height = Math.round(216 * H / W); small.getContext('2d').drawImage(cv, 0, 0, small.width, small.height); thumbs[key] = small.toDataURL('image/jpeg', .8); }
+  $('week').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(k => { const [i, why, f] = planFor(k);
+    return `<button type="button" class="day${k === td ? ' today' : ''}" data-day="${k}"><img src="${thumbs[i + f]}" alt=""><span><b>${DAYS[k]}${k === td ? ' · hoje' : ''}</b><small>${esc(KINDS[i].name)} · ${f === 'story' ? 'story / estado' : 'publicação'}</small><small>${esc(why.replace(/^[^:]+: /, ''))}</small></span></button>`; }).join('');
+}
+$('week').addEventListener('click', e => { const b = e.target.closest('[data-day]'); if (!b) return; const [i, why, f] = planFor(+b.dataset.day); setFmt(f); setKind(i); $('why').textContent = why; window.scrollTo({top: 0, behavior: 'smooth'}); });
 const blob = () => new Promise(r => cv.toBlob(r, 'image/png'));
 const fname = () => `voadaqui-${(KINDS[kind].name || 'post').toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[^\w-]/g, '')}-${fmt}.png`;
 function say(t){ $('msg').innerHTML = `<span class="ok">${esc(t)}</span>`; }
@@ -197,12 +232,13 @@ $('share').addEventListener('click', async () => {
   } else { $('dl').click(); say('Este navegador não partilha imagens: descarreguei a imagem e copiei o texto.'); }
 });
 
-Promise.all([fetch('data/data.json?v=' + Date.now()).then(r => r.json()), document.fonts.load(`900 100px ${FONT}`), document.fonts.load(`600 40px ${FONT}`)]).then(([j]) => {
-  DATA = j; KINDS = build();
+Promise.all([fetch('data/data.json?v=' + Date.now()).then(r => r.json()), fetch('data/casa.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null), document.fonts.load(`900 100px ${FONT}`), document.fonts.load(`600 40px ${FONT}`)]).then(async ([j, c]) => {
+  DATA = j; CASA = c; KINDS = build();
   $('kinds').innerHTML = KINDS.map((k, i) => `<button type="button" aria-pressed="${i === 0}">${esc(k.name)}</button>`).join('');
   $('kinds').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setKind([...$('kinds').children].indexOf(b)); });
   const u = new Date(j.updated); $('when').textContent = `Preços da atualização de ${u.getDate()} ${MO[u.getMonth()]} às ${pad(u.getHours())}:${pad(u.getMinutes())}.`;
-  const [i, why] = pick(); setKind(i); $('why').textContent = why;
+  await drawWeek();
+  const [i, why, f] = pick(); setFmt(f); setKind(i); $('why').textContent = why;
 }).catch(() => { $('msg').textContent = 'Não foi possível carregar os preços. Recarrega a página.'; });
 </script>
 </body>
