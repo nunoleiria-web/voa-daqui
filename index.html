@@ -143,6 +143,9 @@ input[type=text],input[type=date],input[type=number],select{width:100%;min-width
 .tile .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:.7rem;font-weight:700;border-radius:999px;padding:1px 7px;font-style:normal}
 .go{grid-column:1/-1;font-weight:700;font-size:1.02rem;padding:13px;border:0;border-radius:var(--r-sm);background:var(--sun);color:var(--sun-ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 @media (min-width:700px){.go{grid-column:auto}}
+.surp{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:10px;border:1px dashed var(--line2);border-radius:var(--r-sm);background:transparent;color:var(--muted);font:inherit;font-size:.92rem;cursor:pointer}
+.surp b{color:var(--blue)}
+.surp:hover{border-color:var(--blue);color:var(--ink)}
 .go:hover{filter:brightness(1.04)}
 .go:active{transform:translateY(1px)}
 .go:disabled{opacity:.65;cursor:wait}
@@ -489,6 +492,7 @@ input:disabled{opacity:.45}
   <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 18V7M3 13h18v5M21 13a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="10.5" r="1.8"/></symbol>
   <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4Z"/><path d="M13 7v10" stroke-dasharray="2 2"/></symbol>
   <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+  <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="15" r="1" fill="currentColor"/></symbol>
   <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a1 1 0 0 1-1-1V7Z"/><path d="M4 7l11-3v3M16 13h1"/></symbol>
   <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/></symbol>
   <symbol id="i-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5l3.6 2.6-1.4 4.3H9.8l-1.4-4.3z"/></symbol>
@@ -596,6 +600,7 @@ input:disabled{opacity:.45}
         <button type="button" class="tile" id="filtersBtn"><svg class="ic"><use href="#i-sliders"/></svg><span><small>Filtros</small><b id="filtSum">Só mochila</b></span><i class="badge" id="filtN" hidden></i></button>
         <button type="button" class="go" id="go"><svg class="ic"><use href="#i-search"/></svg><span id="goTxt">Procurar voos</span></button>
       </div>
+      <button type="button" class="surp" id="surprise"><svg class="ic"><use href="#i-dice"/></svg>Não sabes para onde? <b>Surpreende-me</b></button>
       <div class="pax" id="paxPanel" hidden>
         <div class="step"><span><b>Adultos</b><small>12 ou mais anos</small></span>
           <span class="ctr"><button type="button" data-step="adults" data-d="-1" aria-label="Menos um adulto">−</button><output id="adultsOut">1</output><button type="button" data-step="adults" data-d="1" aria-label="Mais um adulto">+</button></span></div>

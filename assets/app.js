@@ -94,6 +94,7 @@ function setMode(m){
   $('modehelp').textContent = MODEHELP[m];
   $('fBudget').hidden = m !== 'budget';
   $('fFields').hidden = m === 'live'; $('fLive').hidden = m !== 'live'; $('filtersBtn').hidden = m === 'live';
+  $('surprise').hidden = m === 'live';
   if (!$('go').disabled) $('goTxt').textContent = m === 'live' ? 'Pesquisar voos' : 'Procurar voos';
 }
 document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
@@ -238,6 +239,20 @@ function goHome(){ $('form').hidden = false; $('band').hidden = false; $('summar
 $('edit').addEventListener('click', () => { if (history.state && history.state.results) history.back(); else goHome(); });
 function showErr(msg){ $('out').innerHTML = `<div class="state err"><b>${esc(msg)}</b></div>`; }
 $('go').addEventListener('click', search);
+// viagem surpresa: usa os filtros do formulário e escolhe ao calhas entre a metade mais barata
+let lastSurprise = null;
+$('surprise').addEventListener('click', () => {
+  if (!DATA || mode === 'live') return;
+  search(); if (!current.length) return;
+  const P = ctx.P, pool = current.slice().sort((a, b) => priceFor(a, P) - priceFor(b, P)).slice(0, Math.max(3, Math.ceil(current.length / 2)));
+  let it = pool[Math.floor(Math.random() * pool.length)];
+  if (pool.length > 1) while (it.bookingUrl === lastSurprise) it = pool[Math.floor(Math.random() * pool.length)];
+  lastSurprise = it.bookingUrl;
+  ctx.surprise = true; renderResults();
+  openTripFor(it, P);
+  toast(`Surpresa: ${cityOf(it)} por ${eur0(priceFor(it, P))}!`);
+  if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({path: 'surpresa', title: 'Viagem surpresa', event: true});
+});
 function search(){
   if (!DATA) return;
   if (mode === 'live') return liveSearch();
@@ -293,7 +308,7 @@ function sortBar(){
 function renderResults(){
   const P = ctx.P, idx = sortIdx(current.map((_, i) => i)), u = new Date(DATA.updated);
   const min = Math.min(...current.map(it => priceFor(it, P)));
-  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.ponte ? `${current.length} voos para ${ctx.ponte.title.startsWith('Ponte') ? 'a' : 'o'} ${esc(ctx.ponte.title.charAt(0).toLowerCase() + ctx.ponte.title.slice(1))}, desde ${eur0(min)}` : ctx.home ? `${current.length} destinos a partir de ${eur0(min)}` : ctx.mode === 'pack' ? `${current.length} viage${current.length === 1 ? 'm' : 'ns'} com voo + hotel desde ${eur0(min)}` : ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div></div>
+  $('out').innerHTML = `<div class="reshead"><div><h2>${ctx.ponte ? `${current.length} voos para ${ctx.ponte.title.startsWith('Ponte') ? 'a' : 'o'} ${esc(ctx.ponte.title.charAt(0).toLowerCase() + ctx.ponte.title.slice(1))}, desde ${eur0(min)}` : ctx.home ? `${current.length} destinos a partir de ${eur0(min)}` : ctx.mode === 'pack' ? `${current.length} viage${current.length === 1 ? 'm' : 'ns'} com voo + hotel desde ${eur0(min)}` : ctx.mode === 'budget' ? `${current.length} viage${current.length === 1 ? 'm cabe' : 'ns cabem'} em ${eur0(ctx.budget)}` : `${current.length} destino${current.length === 1 ? '' : 's'} desde ${eur0(min)}`}</h2><div class="sub">Preços vistos ${new Date().toDateString() === u.toDateString() ? 'hoje' : `a ${fmtDay(u)}`} às ${pad2(u.getHours())}:${pad2(u.getMinutes())} · ${esc(paxText())}</div></div>${ctx.surprise ? '<button type="button" class="btn sm primary" data-surprise>Outra surpresa</button>' : ''}</div>
     ${sortBar()}
     ${ctx.mode === 'pack' ? `<p class="note">Total para ${paxLabel(P)}: voo no site mais barato + alojamento com nota 7 ou mais no Booking, ${P.rooms} quarto${P.rooms > 1 ? 's' : ''}. O alojamento é estimado a partir do preço para 2 pessoas num quarto.</p>` : ''}
     ${P.total > 1 && ctx.mode !== 'pack' ? `<p class="note">Total estimado para ${paxLabel(P)}. Os lugares mais baratos costumam ser poucos: confirma se há para todos antes de pagar.</p>` : ''}
@@ -753,6 +768,7 @@ function renderBoard(){
 $('boardL').addEventListener('click', e => { const b = e.target.closest('[data-board]'); if (b && BOARD[+b.dataset.board]) openTripFor(toIt(BOARD[+b.dataset.board]), group()); });
 
 // ---------- global clicks ----------
+document.addEventListener('click', e => { if (e.target.closest('[data-surprise]')) $('surprise').click(); });
 document.addEventListener('click', e => {
   const sortB = e.target.closest('[data-sort] button');
   if (sortB){ sortBy = sortB.dataset.v; renderResults(); return; }
