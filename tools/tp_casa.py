@@ -62,13 +62,16 @@ def main():
                 time.sleep(0.35)
     if not rows:
         sys.exit('nenhum preço: nada foi alterado')
-    # por ligação, guarda os 12 mais baratos (datas diferentes)
+    # por ligação, guarda os 12 mais baratos e, à parte, os 8 mais baratos do Natal (datas diferentes)
+    def xmas(r):
+        a, b = r['dep'][5:10], r['ret'][5:10]
+        return '12-12' <= a <= '12-26' and (b >= '12-24' or r['ret'][:4] > r['dep'][:4])
     rows.sort(key=lambda r: r['p'])
     keep, cnt, seen = [], {}, set()
     for r in rows:
-        k = (r['o'], r['to'])
+        k = (r['o'], r['to'], xmas(r))
         kd = (r['o'], r['to'], r['dep'][:10], r['ret'][:10])
-        if kd in seen or cnt.get(k, 0) >= 12:
+        if kd in seen or cnt.get(k, 0) >= (8 if k[2] else 12):
             continue
         seen.add(kd); cnt[k] = cnt.get(k, 0) + 1; keep.append(r)
     OUT.write_text(json.dumps({'updated': now.isoformat(timespec='minutes'), 'raw': total, 'rows': keep}, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
