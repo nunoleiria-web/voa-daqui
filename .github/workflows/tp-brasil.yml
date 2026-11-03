@@ -1,0 +1,34 @@
+name: Brasil (Travelpayouts)
+on:
+  schedule:
+    - cron: '31 5 * * *'   # uma vez por dia, de madrugada (UTC)
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['tools/tp_brasil.py', '.github/workflows/tp-brasil.yml']
+permissions:
+  contents: write
+concurrency:
+  group: tp-brasil
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/tp_brasil.py
+        env:
+          TP_TOKEN: ${{ secrets.TP_TOKEN }}
+      - name: Guardar no main
+        run: |
+          git config user.name "voa-daqui-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/brasil.json
+          git diff --cached --quiet && exit 0
+          git commit -qm "Brasil $(date -u +%Y-%m-%dT%H:%M)"
+          for i in 1 2 3 4 5; do
+            git pull -q --rebase origin main && git push -q origin main && exit 0
+            sleep $((i * 7))
+          done
+          exit 1

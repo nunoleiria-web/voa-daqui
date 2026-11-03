@@ -3,5 +3,6 @@
   <url><loc>https://voadaqui.pt/</loc><changefreq>hourly</changefreq><priority>1.0</priority></url>
   <url><loc>https://voadaqui.pt/sobre.html</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://voadaqui.pt/ferias.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://voadaqui.pt/brasil.html</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://voadaqui.pt/casa.html</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
 </urlset>
