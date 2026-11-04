@@ -102,6 +102,7 @@ $('from').innerHTML = ORI.map(([k, n]) => `<button type="button" data-v="${k}" a
 document.querySelectorAll('#set button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === st.set)));
 document.querySelectorAll('#len button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === st.len)));
 let DATA = null;
+const rowUrl = r => r.url || `https://www.kiwi.com/deep?origin=${r.o}&destination=${r.to}&departure=${dash(r.dep)}&return=${dash(r.ret)}&adults=1&currency=EUR&lang=pt`;
 function draw(){
   try { localStorage.setItem('voa-brasil', JSON.stringify(st)); } catch (e){}
   if (!DATA) return;
@@ -116,14 +117,14 @@ function draw(){
   const kiwi = to => `https://www.kiwi.com/deep?origin=LIS&destination=${to}&departure=${dash(new Date(Date.now() + 60 * 864e5).toISOString())}&return=${dash(new Date(Date.now() + 77 * 864e5).toISOString())}&adults=1&currency=EUR&lang=pt`;
   const title = to => esc(DN[to] || to) + (CAP[to] ? ` <small>${CAP[to][1]}</small>` : '');
   $('list').innerHTML = groups.map(([to, g]) => g.length ? `<article class="card dest"><header><h2>${title(to)}</h2><span>desde <b>${eur0(g[0].p)}</b></span></header>${g.map(r => { const al = r.al ? (AL[r.al] || r.al) : '';
-    const url = `https://www.kiwi.com/deep?origin=${r.o}&destination=${r.to}&departure=${dash(r.dep)}&return=${dash(r.ret)}&adults=1&currency=EUR&lang=pt`;
+    const url = rowUrl(r);
     return `<div class="it"><div><div class="d">${dd(r.dep)} → ${dd(r.ret)}</div><div class="sub">${esc(ONAME[r.o])} · ${r.n} noites${al ? ' · ' + esc(al) : ''} · ${r.st === 0 ? 'direto' : (r.st <= 2 ? '1 escala' : 'escalas')}</div></div><div class="p">${eur0(r.p)}</div><a class="btn primary" href="${url}" target="_blank" rel="noopener">Confirmar</a></div>`; }).join('')}${g.length < 5 ? `<div class="it"><div class="sub">Só há ${g.length} preço${g.length > 1 ? 's' : ''} guardado${g.length > 1 ? 's' : ''} para esta escolha.</div><span></span><a class="btn" href="${kiwi(to)}" target="_blank" rel="noopener">Ver mais no Kiwi</a></div>` : ''}</article>`
     : `<article class="card dest"><header><h2>${title(to)}</h2><span>sem preços guardados</span></header><div class="it"><div class="sub">Ainda não há preços recentes para este destino.</div><span></span><a class="btn" href="${kiwi(to)}" target="_blank" rel="noopener">Procurar no Kiwi</a></div></article>`).join('');
   const u = new Date(DATA.updated);
-  $('note').textContent = `Preços vistos por outros viajantes nos últimos 2 dias (dados da Aviasales, recolhidos a ${u.getDate()} ${MO[u.getMonth()]}), por pessoa, ida e volta, normalmente sem mala de porão (confirma a bagagem). Podem já ter mudado: confirma sempre antes de comprar.`;
+  $('note').textContent = `Preços da Aviasales (vistos por outros viajantes, recolhidos a ${u.getDate()} ${MO[u.getMonth()]}) e do Kiwi (pesquisa de ${DATA.kiwi ? DATA.kiwi : 'há alguns dias'}), por pessoa, ida e volta, normalmente sem mala de porão (confirma a bagagem). Podem já ter mudado: confirma sempre antes de comprar.`;
 }
 ['set', 'from', 'len'].forEach(g => $(g).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st[g] = b.dataset.v; $(g).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); draw(); }));
-fetch('data/brasil.json?v=' + Date.now()).then(r => r.json()).then(j => { DATA = j; draw(); }).catch(() => { $('top').innerHTML = '<div class="big">Os preços ainda não estão disponíveis</div><p>Volta daqui a pouco.</p>'; });
+Promise.all([fetch('data/brasil.json?v=' + Date.now()).then(r => r.json()), fetch('data/brasil_kiwi.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null)]).then(([j, k]) => { DATA = j; if (k && k.rows) { DATA.rows = DATA.rows.concat(k.rows); DATA.kiwi = k.date; } draw(); }).catch(() => { $('top').innerHTML = '<div class="big">Os preços ainda não estão disponíveis</div><p>Volta daqui a pouco.</p>'; });
 </script>
 <script data-goatcounter="https://voadaqui.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
