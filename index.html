@@ -70,6 +70,7 @@ a{color:inherit}
 h1,h2,h3,h4{font-family:var(--font);margin:0}
 input:focus-visible,button:focus-visible,a:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .ic{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.brx{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--sun);color:#1f1600;border-radius:14px;padding:13px 16px;text-decoration:none;font-weight:700;line-height:1.3}.brx small{display:block;font-weight:500;font-size:.82rem;opacity:.8}.brx b{white-space:nowrap}
 .wrap{width:100%;max-width:calc(var(--wrap) + 2 * var(--gut));margin:0 auto;padding-inline:var(--gut)}
 .muted{color:var(--muted)}
 [hidden]{display:none!important}
@@ -625,6 +626,7 @@ input:disabled{opacity:.45}
 </section>
 
 <main class="wrap main">
+  <a class="brx" href="brasil.html"><span>Voos para o Brasil<small>Os 5 preços mais baixos de cada destino</small></span><b>Ver →</b></a>
   <section class="view" id="viewSearch">
     <div class="summary" id="summary" hidden><svg class="ic"><use href="#i-search"/></svg><div><b id="sumT"></b><span id="sumS"></span></div><button type="button" class="btn sm" id="edit"><svg class="ic"><use href="#i-edit"/></svg>Alterar</button></div>
     <div class="stale" id="stale" hidden role="status"></div>
