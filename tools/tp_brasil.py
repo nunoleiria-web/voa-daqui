@@ -12,9 +12,11 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'data' / 'brasil.json'
 API = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
 FROM = ['LIS', 'OPO', 'FAO']
-TO = ['SAO', 'RIO', 'SSA', 'REC', 'FOR', 'NAT', 'BSB', 'BHZ', 'POA', 'CWB', 'MCZ', 'BEL', 'MAO', 'FLN', 'VIX', 'SLZ', 'JPA', 'AJU', 'THE', 'GYN']
-MONTHS = 12
-NIGHTS = (7, 35)
+TO = ['SAO', 'RIO', 'SSA', 'REC', 'FOR', 'NAT', 'MCZ', 'FLN', 'BSB', 'BHZ', 'POA', 'CWB', 'VIX', 'GYN', 'BEL', 'MAO', 'SLZ', 'THE', 'JPA', 'AJU',
+      'CGB', 'CGR', 'PVH', 'RBR', 'BVB', 'MCP', 'PMW',  # capitais que faltavam
+      'IGU', 'BPS']  # Foz do Iguaçu e Porto Seguro (principais, não capitais)
+MONTHS = 13
+NIGHTS = (5, 45)
 KEEP = 8  # por origem e destino; o site mostra os 5 mais baratos
 
 
@@ -61,7 +63,7 @@ def main():
                     rows.append({'o': o, 'to': d, 'p': round(float(x['price'])), 'dep': x['departure_at'][:16], 'ret': x['return_at'][:16], 'n': n,
                                  'al': x.get('airline') or '', 'st': (x.get('transfers') or 0) + (x.get('return_transfers') or 0),
                                  'seen': (x.get('found_at') or '')[:16]})
-                time.sleep(0.3)
+                time.sleep(0.2)
     if not rows:
         sys.exit('nenhum preço: nada foi alterado')
     rows.sort(key=lambda r: r['p'])
