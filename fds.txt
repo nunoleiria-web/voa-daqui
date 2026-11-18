@@ -1,8 +1,6 @@
-LIS|ALC|Alicante|Spain|125|2026-11-20T20:55|2026-11-20T23:35|0|100|2026-11-22T19:40|2026-11-22T20:30|0|110|Ryanair|https://kiwi.com/u/rvmn53
-LIS|FNC|Funchal|Portugal|128|2026-11-20T18:55|2026-11-20T20:45|0|110|2026-11-22T08:55|2026-11-22T10:45|0|110|easyJet + Ryanair|https://kiwi.com/u/m6frhjg
-LIS|MAD|Madrid|Spain|130|2026-11-20T20:15|2026-11-20T22:40|0|85|2026-11-22T06:30|2026-11-22T06:50|0|80|Ryanair + Air Europa|https://kiwi.com/u/yj875fz
-OPO|TLS|Toulouse|France|124|2026-11-20T19:25|2026-11-20T22:05|0|100|2026-11-22T09:50|2026-11-22T10:35|0|105|Ryanair|https://kiwi.com/u/ktpf7w
-OPO|MAD|Madrid|Spain|131|2026-11-20T18:35|2026-11-20T20:50|0|75|2026-11-22T06:30|2026-11-22T06:45|0|75|Ryanair + Air Europa|https://kiwi.com/u/bmmy3c
-FAO|ORK|Cork|Ireland|40|2026-12-11T21:15|2026-12-11T23:55|0|160|2026-12-13T10:30|2026-12-13T13:05|0|155|Ryanair|https://kiwi.com/u/pg3ywk
-FAO|LPL|Liverpool|United Kingdom|60|2026-12-11T20:45|2026-12-11T23:40|0|175|2026-12-13T07:10|2026-12-13T10:05|0|175|Ryanair|https://kiwi.com/u/wd7mww
-FAO|RTM|Rotterdam|Netherlands|117|2027-01-15T18:35|2027-01-15T22:35|0|180|2027-01-17T16:00|2027-01-17T18:00|0|180|Transavia|https://kiwi.com/u/pcsw3xu
+LIS|FNC|Funchal|Portugal|136|2026-11-20T18:55|2026-11-20T20:45|0|110|2026-11-22T08:55|2026-11-22T10:45|0|110|easyJet + Ryanair|https://kiwi.com/u/dg7fdjrun2
+LIS|ALC|Alicante|Spain|141|2026-11-20T20:55|2026-11-20T23:35|0|100|2026-11-22T19:40|2026-11-22T20:30|0|110|Ryanair|https://kiwi.com/u/hmrghs8yvf
+OPO|TLS|Toulouse|France|138|2026-11-20T19:25|2026-11-20T22:05|0|100|2026-11-22T09:50|2026-11-22T10:35|0|105|Ryanair|https://kiwi.com/u/jdc6nstp5z
+FAO|ORK|Cork|Ireland|41|2026-12-11T21:15|2026-12-11T23:55|0|160|2026-12-13T10:30|2026-12-13T13:05|0|155|Ryanair|https://kiwi.com/u/7m5pd8rbr5
+FAO|LPL|Liverpool|United Kingdom|60|2026-12-04T20:45|2026-12-04T23:40|0|175|2026-12-06T07:10|2026-12-06T10:05|0|175|Ryanair|https://kiwi.com/u/br44rptr6m
+FAO|RTM|Rotterdam|Netherlands|117|2027-01-15T18:35|2027-01-15T22:35|0|180|2027-01-17T16:00|2027-01-17T18:00|0|180|Transavia|https://kiwi.com/u/dhcynynrxk
