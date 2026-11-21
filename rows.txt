@@ -1,45 +1,45 @@
-LIS|RAK|Marrakesh|Morocco|43|2026-12-12T13:20|2026-12-12T15:00|0|100|2026-12-15T18:50|2026-12-15T20:35|0|105|Ryanair|https://kiwi.com/u/uzrhrj6jn7
-LIS|MLA|Malta|Malta|51|2026-12-10T20:15|2026-12-11T00:25|0|190|2026-12-15T18:05|2026-12-15T20:35|0|210|Ryanair|https://kiwi.com/u/7vd5f8j29x
-LIS|TLS|Toulouse|France|52|2027-01-09T10:55|2027-01-09T13:50|0|115|2027-01-11T22:50|2027-01-11T23:55|0|125|Ryanair|https://kiwi.com/u/btz2ukbgsr
-LIS|VLC|Valencia|Spain|54|2026-12-11T21:40|2026-12-12T00:15|0|95|2026-12-15T13:40|2026-12-15T14:20|0|100|Ryanair|https://kiwi.com/u/wbcq9dchy2
-LIS|MRS|Marseille|France|54|2027-01-14T14:00|2027-01-14T17:20|0|140|2027-01-16T13:45|2027-01-16T15:10|0|145|Ryanair|https://kiwi.com/u/bt5cq9pf6k
-LIS|SVQ|Seville|Spain|57|2026-12-17T22:20|2026-12-18T00:25|0|65|2026-12-21T21:25|2026-12-21T21:35|0|70|Ryanair|https://kiwi.com/u/dphh32n86p
-LIS|CRL|Brussels|Belgium|59|2027-01-15T17:50|2027-01-15T21:35|0|165|2027-01-17T07:45|2027-01-17T09:35|0|170|Ryanair|https://kiwi.com/u/r8hm9fd4s2
-LIS|BGY|Milan|Italy|60|2027-01-16T21:25|2027-01-17T01:15|0|170|2027-01-21T16:40|2027-01-21T18:40|0|180|Ryanair + easyJet|https://kiwi.com/u/2jmgw2xd37
-LIS|MAD|Madrid|Spain|61|2026-12-10T13:15|2026-12-10T15:40|0|85|2026-12-12T16:50|2026-12-12T17:15|0|85|Ryanair|https://kiwi.com/u/dgfdxrt5w2
-LIS|AGP|Málaga|Spain|64|2026-12-03T21:40|2026-12-03T23:55|0|75|2026-12-05T20:15|2026-12-05T20:40|0|85|Ryanair|https://kiwi.com/u/y7pvtdycwr
-LIS|MAN|Manchester|United Kingdom|70|2027-01-11T21:30|2027-01-12T00:25|0|175|2027-01-14T20:10|2027-01-14T23:05|0|175|Ryanair|https://kiwi.com/u/97huvpw97z
-LIS|EIN|Eindhoven|Netherlands|71|2027-01-13T14:25|2027-01-13T18:20|0|175|2027-01-16T21:15|2027-01-16T23:15|0|180|Ryanair|https://kiwi.com/u/c3ty4rutx9
-LIS|BVA|Paris|France|76|2027-01-18T15:35|2027-01-18T19:05|0|150|2027-01-21T14:20|2027-01-21T15:55|0|155|Ryanair|https://kiwi.com/u/qqu3pcd6qh
-LIS|ALC|Alicante|Spain|80|2026-12-05T21:40|2026-12-06T00:20|0|100|2026-12-09T18:20|2026-12-09T19:10|0|110|Ryanair|https://kiwi.com/u/ksqdr3ub8y
-LIS|OPO|Porto|Portugal|101|2026-12-25T23:30|2026-12-26T00:30|0|60|2026-12-30T11:00|2026-12-30T11:55|0|55|TAP Portugal|https://kiwi.com/u/vcmsjdqk9m
-OPO|TNG|Tangier|Morocco|36|2026-12-19T20:20|2026-12-19T21:50|0|90|2026-12-21T12:45|2026-12-21T14:15|0|90|Ryanair|https://kiwi.com/u/n86d2xqy44
-OPO|FAO|Faro|Portugal|37|2026-12-12T06:10|2026-12-12T07:20|0|70|2026-12-15T06:20|2026-12-15T07:30|0|70|Ryanair|https://kiwi.com/u/qsqxu7fm7t
-OPO|VLC|Valencia|Spain|39|2027-01-15T06:30|2027-01-15T09:00|0|90|2027-01-17T15:50|2027-01-17T16:25|0|95|Ryanair|https://kiwi.com/u/dzggt8h72j
-OPO|RAK|Marrakesh|Morocco|39|2026-12-10T19:15|2026-12-10T21:10|0|115|2026-12-12T16:50|2026-12-12T18:50|0|120|Ryanair|https://kiwi.com/u/8vuhswzmym
-OPO|AGP|Málaga|Spain|43|2026-12-12T06:30|2026-12-12T08:55|0|85|2026-12-14T09:30|2026-12-14T10:00|0|90|Ryanair|https://kiwi.com/u/qqr6x9ddx4
-OPO|MAD|Madrid|Spain|44|2027-01-15T06:15|2027-01-15T08:30|0|75|2027-01-19T09:20|2027-01-19T09:40|0|80|Ryanair|https://kiwi.com/u/4xrh4r87sp
-OPO|MRS|Marseille|France|45|2027-01-15T18:45|2027-01-15T21:45|0|120|2027-01-19T16:15|2027-01-19T17:20|0|125|Ryanair|https://kiwi.com/u/464nxxtjk8
-OPO|SVQ|Seville|Spain|46|2027-01-02T20:30|2027-01-02T22:45|0|75|2027-01-04T22:40|2027-01-04T22:55|0|75|Ryanair|https://kiwi.com/u/m34ufpj3p2
-OPO|FNC|Funchal|Portugal|46|2027-01-17T17:05|2027-01-17T19:10|0|125|2027-01-20T15:15|2027-01-20T17:20|0|125|Ryanair|https://kiwi.com/u/s738kp4wut
-OPO|LPL|Liverpool|United Kingdom|46|2026-12-10T13:05|2026-12-10T15:25|0|140|2026-12-13T19:10|2026-12-13T21:35|0|145|Ryanair|https://kiwi.com/u/9up8r532s3
-OPO|TLS|Toulouse|France|49|2027-01-09T06:55|2027-01-09T09:35|0|100|2027-01-11T11:50|2027-01-11T12:35|0|105|Ryanair|https://kiwi.com/u/rxz7w5zxvw
-OPO|BIO|Bilbao|Spain|50|2026-12-10T20:55|2026-12-10T23:10|0|75|2026-12-13T20:00|2026-12-13T20:20|0|80|Volotea|https://kiwi.com/u/28jy5xhhfz
-OPO|ALC|Alicante|Spain|51|2027-01-15T21:00|2027-01-15T23:35|0|95|2027-01-17T19:35|2027-01-17T20:15|0|100|Ryanair|https://kiwi.com/u/k8u74wx257
-OPO|BCN|Barcelona|Spain|52|2027-01-18T22:05|2027-01-19T00:50|0|105|2027-01-23T06:55|2027-01-23T07:55|0|120|Ryanair|https://kiwi.com/u/gjjtzbpk9t
-OPO|NTE|Nantes|France|59|2026-12-07T13:35|2026-12-07T16:15|0|100|2026-12-11T07:30|2026-12-11T08:15|0|105|Volotea|https://kiwi.com/u/7tqmr7t62p
-FAO|OPO|Porto|Portugal|41|2027-01-12T06:20|2027-01-12T07:30|0|70|2027-01-16T22:00|2027-01-16T23:10|0|70|Ryanair|https://kiwi.com/u/cwhn7py3m4
-FAO|DUB|Dublin|Ireland|42|2026-12-09T06:25|2026-12-09T09:25|0|180|2026-12-13T07:00|2026-12-13T09:55|0|175|Ryanair|https://kiwi.com/u/qfghx3k2vw
-FAO|STN|London|United Kingdom|56|2026-12-07T19:15|2026-12-07T22:10|0|175|2026-12-10T20:00|2026-12-10T22:50|0|170|Ryanair|https://kiwi.com/u/dbcnfctgnq
-FAO|MAN|Manchester|United Kingdom|60|2026-12-07T06:10|2026-12-07T09:15|0|185|2026-12-10T09:40|2026-12-10T12:35|0|175|Ryanair|https://kiwi.com/u/qkfdps36qu
-FAO|LPL|Liverpool|United Kingdom|62|2026-12-04T20:45|2026-12-04T23:40|0|175|2026-12-06T07:10|2026-12-06T10:05|0|175|Ryanair|https://kiwi.com/u/vqsmgncmjw
-FAO|BOD|Bordeaux|France|65|2026-12-12T12:15|2026-12-12T15:15|0|120|2026-12-15T13:55|2026-12-15T14:50|0|115|easyJet|https://kiwi.com/u/bkbybcsw4f
-FAO|BRS|Bristol|United Kingdom|67|2026-12-14T14:30|2026-12-14T17:10|0|160|2026-12-16T07:15|2026-12-16T09:55|0|160|Ryanair + easyJet|https://kiwi.com/u/7hvurg9gjg
-FAO|BVA|Paris|France|70|2026-12-03T15:00|2026-12-03T18:40|0|160|2026-12-06T10:40|2026-12-06T12:15|0|155|Ryanair|https://kiwi.com/u/m3gdcg28hj
-FAO|BHX|Birmingham|United Kingdom|70|2026-11-27T12:35|2026-11-27T15:30|0|175|2026-11-29T14:20|2026-11-29T17:15|0|175|Ryanair + Jet2|https://kiwi.com/u/nxfxzzvwuj
-FAO|FKB|Karlsruhe|Germany|74|2026-12-31T16:40|2026-12-31T20:45|0|185|2027-01-03T17:45|2027-01-03T19:40|0|175|Ryanair|https://kiwi.com/u/7u8zcyuh76
-FAO|NRN|Düsseldorf|Germany|76|2026-12-11T08:45|2026-12-11T12:50|0|185|2026-12-14T11:30|2026-12-14T13:35|0|185|Ryanair|https://kiwi.com/u/f54hjxf4n6
-FAO|BGY|Milan|Italy|79|2026-12-04T13:25|2026-12-04T17:20|0|175|2026-12-06T10:25|2026-12-06T12:20|0|175|Ryanair|https://kiwi.com/u/48xn28jh23
-FAO|ORK|Cork|Ireland|80|2026-12-26T08:45|2026-12-26T11:25|0|160|2026-12-29T09:30|2026-12-29T12:05|0|155|Ryanair|https://kiwi.com/u/2jzudnqh6g
-FAO|EIN|Eindhoven|Netherlands|90|2026-12-06T06:40|2026-12-06T10:45|0|185|2026-12-10T18:30|2026-12-10T20:30|0|180|Ryanair|https://kiwi.com/u/kj9z5nfw8f
-FAO|LIS|Lisbon|Portugal|114|2026-12-18T17:05|2026-12-18T18:00|0|55|2026-12-21T09:30|2026-12-21T10:20|0|50|TAP Portugal|https://kiwi.com/u/us7gg23bmx
+LIS|SVQ|Seville|Spain|39|2027-01-18T22:00|2027-01-19T00:05|0|65|2027-01-23T23:45|2027-01-23T23:55|0|70|Ryanair|https://kiwi.com/u/r6bg5kg83m
+LIS|BCN|Barcelona|Spain|42|2027-01-18T21:20|2027-01-19T00:15|0|115|2027-01-22T15:50|2027-01-22T16:55|0|125|Ryanair + Vueling|https://kiwi.com/u/z8ud7ksk26
+LIS|FNC|Funchal|Portugal|49|2026-12-14T14:35|2026-12-14T16:25|0|110|2026-12-18T13:15|2026-12-18T15:05|0|110|Ryanair|https://kiwi.com/u/7ngpk74m2x
+LIS|RAK|Marrakesh|Morocco|56|2026-12-01T21:05|2026-12-01T22:45|0|100|2026-12-03T19:45|2026-12-03T21:30|0|105|Ryanair|https://kiwi.com/u/vn5j7ht375
+LIS|MAD|Madrid|Spain|62|2027-01-14T13:15|2027-01-14T15:40|0|85|2027-01-16T16:50|2027-01-16T17:15|0|85|Ryanair|https://kiwi.com/u/mp9qtzn4b7
+LIS|TLS|Toulouse|France|64|2027-01-18T19:30|2027-01-18T22:25|0|115|2027-01-22T19:10|2027-01-22T20:15|0|125|Ryanair|https://kiwi.com/u/z7ymhjrd53
+LIS|BGY|Milan|Italy|66|2027-01-15T14:40|2027-01-15T18:30|0|170|2027-01-18T19:40|2027-01-18T21:40|0|180|Ryanair + easyJet|https://kiwi.com/u/6rfcsfcb3k
+LIS|FCO|Rome|Italy|71|2027-01-14T09:05|2027-01-14T13:10|0|185|2027-01-18T06:05|2027-01-18T08:25|0|200|Wizz Air Malta|https://kiwi.com/u/p6hu58pczf
+LIS|MLA|Malta|Malta|73|2026-12-02T19:35|2026-12-02T23:45|0|190|2026-12-04T10:30|2026-12-04T13:00|0|210|Ryanair|https://kiwi.com/u/g7dt7nwc67
+LIS|BVA|Paris|France|76|2027-01-18T15:35|2027-01-18T19:05|0|150|2027-01-21T14:20|2027-01-21T15:55|0|155|Ryanair|https://kiwi.com/u/m2kprt3kum
+LIS|STN|London|United Kingdom|86|2027-01-18T21:00|2027-01-18T23:50|0|170|2027-01-21T20:05|2027-01-21T22:45|0|160|Ryanair + easyJet|https://kiwi.com/u/n3684dxujx
+LIS|VLC|Valencia|Spain|99|2026-12-01T14:45|2026-12-01T17:20|0|95|2026-12-03T20:05|2026-12-03T20:45|0|100|Ryanair|https://kiwi.com/u/hnx6wvjp89
+LIS|OPO|Porto|Portugal|101|2026-12-19T06:30|2026-12-19T07:30|0|60|2026-12-21T11:30|2026-12-21T12:25|0|55|TAP Portugal|https://kiwi.com/u/qmbcbctwyv
+LIS|FAO|Faro|Portugal|102|2026-12-21T09:30|2026-12-21T10:20|0|50|2026-12-23T16:30|2026-12-23T17:25|0|55|TAP Portugal|https://kiwi.com/u/ttsxv96h4h
+LIS|AGP|Málaga|Spain|102|2026-11-28T21:05|2026-11-28T23:20|0|75|2026-11-30T14:15|2026-11-30T14:40|0|85|Ryanair|https://kiwi.com/u/5ntvjdwdsk
+OPO|TNG|Tangier|Morocco|37|2026-12-19T20:20|2026-12-19T21:50|0|90|2026-12-21T12:45|2026-12-21T14:15|0|90|Ryanair|https://kiwi.com/u/ygmvd49v3s
+OPO|FAO|Faro|Portugal|39|2026-12-12T06:10|2026-12-12T07:20|0|70|2026-12-15T06:20|2026-12-15T07:30|0|70|Ryanair|https://kiwi.com/u/nw57xpqh47
+OPO|VLC|Valencia|Spain|39|2027-01-15T06:30|2027-01-15T09:00|0|90|2027-01-17T15:50|2027-01-17T16:25|0|95|Ryanair|https://kiwi.com/u/77zz4vjs35
+OPO|RAK|Marrakesh|Morocco|39|2026-12-10T19:15|2026-12-10T21:10|0|115|2026-12-12T16:50|2026-12-12T18:50|0|120|Ryanair|https://kiwi.com/u/k5xf94gtzj
+OPO|MAD|Madrid|Spain|40|2027-01-15T06:15|2027-01-15T08:30|0|75|2027-01-19T09:20|2027-01-19T09:40|0|80|Ryanair|https://kiwi.com/u/ffk95wbjjj
+OPO|FNC|Funchal|Portugal|41|2026-12-15T10:45|2026-12-15T12:50|0|125|2026-12-19T20:40|2026-12-19T22:45|0|125|Ryanair|https://kiwi.com/u/6ctjr97syx
+OPO|AGP|Málaga|Spain|44|2026-12-12T06:30|2026-12-12T08:55|0|85|2026-12-14T09:30|2026-12-14T10:00|0|90|Ryanair|https://kiwi.com/u/xh4dn8rt3r
+OPO|BGY|Milan|Italy|44|2027-01-13T20:35|2027-01-14T00:10|0|155|2027-01-16T19:25|2027-01-16T21:05|0|160|Ryanair|https://kiwi.com/u/ndth7yyy95
+OPO|MRS|Marseille|France|45|2027-01-15T18:45|2027-01-15T21:45|0|120|2027-01-19T16:15|2027-01-19T17:20|0|125|Ryanair|https://kiwi.com/u/fvpy6hpf2f
+OPO|SVQ|Seville|Spain|46|2027-01-02T20:30|2027-01-02T22:45|0|75|2027-01-04T22:40|2027-01-04T22:55|0|75|Ryanair|https://kiwi.com/u/v3rwbprndy
+OPO|ALC|Alicante|Spain|49|2026-12-11T21:00|2026-12-11T23:35|0|95|2026-12-13T19:35|2026-12-13T20:15|0|100|Ryanair|https://kiwi.com/u/rq2xs882qd
+OPO|TLS|Toulouse|France|49|2027-01-09T06:55|2027-01-09T09:35|0|100|2027-01-11T11:50|2027-01-11T12:35|0|105|Ryanair|https://kiwi.com/u/thzf47byx2
+OPO|BIO|Bilbao|Spain|50|2026-12-10T20:55|2026-12-10T23:10|0|75|2026-12-13T20:00|2026-12-13T20:20|0|80|Volotea|https://kiwi.com/u/xqjqs9kztq
+OPO|BCN|Barcelona|Spain|51|2027-01-18T22:05|2027-01-19T00:50|0|105|2027-01-23T06:55|2027-01-23T07:55|0|120|Ryanair|https://kiwi.com/u/scum8ccsyb
+OPO|NTE|Nantes|France|59|2026-12-07T13:35|2026-12-07T16:15|0|100|2026-12-11T07:30|2026-12-11T08:15|0|105|Volotea|https://kiwi.com/u/hy783yb39b
+FAO|OPO|Porto|Portugal|46|2026-12-01T06:20|2026-12-01T07:30|0|70|2026-12-05T14:15|2026-12-05T15:25|0|70|Ryanair|https://kiwi.com/u/tjz3dvz6t3
+FAO|HHN|Frankfurt|Germany|58|2026-12-04T16:15|2026-12-04T20:20|0|185|2026-12-06T21:25|2026-12-06T23:30|0|185|Ryanair|https://kiwi.com/u/vdvfybjmd3
+FAO|ORK|Cork|Ireland|67|2026-12-18T21:15|2026-12-18T23:55|0|160|2026-12-20T10:30|2026-12-20T13:05|0|155|Ryanair|https://kiwi.com/u/5s75f4jhgj
+FAO|DUB|Dublin|Ireland|67|2026-12-26T06:10|2026-12-26T09:10|0|180|2026-12-30T20:10|2026-12-30T23:05|0|175|Ryanair|https://kiwi.com/u/mf2uyw9m2s
+FAO|CRL|Brussels|Belgium|68|2026-12-29T06:55|2026-12-29T10:50|0|175|2026-12-31T20:55|2026-12-31T22:45|0|170|Ryanair|https://kiwi.com/u/k2z5d9rqwr
+FAO|BHX|Birmingham|United Kingdom|68|2026-11-27T12:35|2026-11-27T15:30|0|175|2026-11-29T14:20|2026-11-29T17:15|0|175|Ryanair + Jet2|https://kiwi.com/u/pyjxbd4wd2
+FAO|STN|London|United Kingdom|74|2026-12-15T06:15|2026-12-15T09:10|0|175|2026-12-17T06:20|2026-12-17T09:15|0|175|Ryanair + easyJet|https://kiwi.com/u/s563mn7vr7
+FAO|MAN|Manchester|United Kingdom|80|2026-12-03T06:10|2026-12-03T09:15|0|185|2026-12-05T06:20|2026-12-05T09:20|0|180|Ryanair + Jet2|https://kiwi.com/u/gqkkkcf2yb
+FAO|GLA|Glasgow|United Kingdom|88|2026-12-13T10:15|2026-12-13T13:40|0|205|2026-12-17T07:00|2026-12-17T10:20|0|200|Jet2 + easyJet|https://kiwi.com/u/usum6s9tbq
+FAO|EDI|Edinburgh|United Kingdom|89|2026-12-19T13:45|2026-12-19T17:05|0|200|2026-12-21T10:05|2026-12-21T13:20|0|195|Ryanair|https://kiwi.com/u/bp8sdpssku
+FAO|FKB|Karlsruhe|Germany|93|2026-12-04T16:15|2026-12-04T20:20|0|185|2026-12-06T17:45|2026-12-06T19:40|0|175|Ryanair|https://kiwi.com/u/gsu3t8d8vz
+FAO|NRN|Düsseldorf|Germany|95|2026-12-14T07:00|2026-12-14T11:05|0|185|2026-12-18T06:15|2026-12-18T08:20|0|185|Ryanair|https://kiwi.com/u/tknczmfhvu
+FAO|LPL|Liverpool|United Kingdom|100|2026-11-27T20:45|2026-11-27T23:40|0|175|2026-11-29T07:10|2026-11-29T10:05|0|175|Ryanair|https://kiwi.com/u/5jg2m8grgz
+FAO|BRS|Bristol|United Kingdom|103|2026-11-27T06:55|2026-11-27T09:35|0|160|2026-11-29T07:25|2026-11-29T10:05|0|160|Ryanair + easyJet|https://kiwi.com/u/8z9zzkbhh2
+FAO|LIS|Lisbon|Portugal|104|2027-01-19T16:30|2027-01-19T17:25|0|55|2027-01-21T23:00|2027-01-21T23:50|0|50|TAP Portugal|https://kiwi.com/u/zm2sbg5n8j
